@@ -5,6 +5,7 @@ import compression from "compression";
 import { testConnection } from "./db/connection";
 import { env } from "./config/env";
 import { initDatabase } from "./db/initDb";
+import { userRouter } from "./modules/users/user.controller";
 
 const app = express();
 
@@ -26,6 +27,12 @@ async function main() {
 
     app.get('/', testMiddleware, (_req: Request, res: Response) => {
       res.send('Hello World!');
+    });
+
+    app.use("/api/users", userRouter);
+
+    app.use((_req, res) => {
+      res.status(404).json({ message: "Not Found" });
     });
 
     app.listen(port, () => {
