@@ -1,9 +1,10 @@
 import { pool } from "../../db/connection";
 import bcrypt from "bcrypt";
+import { User } from "./user.types";
 
 export class UserService {
 
-  async createUser(email: string, username: string, password: string): Promise<any> {
+  async createUser(email: string, username: string, password: string): Promise<User> {
     try {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -20,7 +21,7 @@ export class UserService {
     }
   }
 
-  getAllUsers(): Promise<any> {
+  getAllUsers(): Promise<{ rows: User[] }> {
     try {
       return pool.query('SELECT * FROM users');
     } catch (error) {
