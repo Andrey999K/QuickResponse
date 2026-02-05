@@ -30,8 +30,6 @@ async function createTables() {
       id SERIAL PRIMARY KEY,
       email VARCHAR(255) UNIQUE NOT NULL,
       username VARCHAR(100) UNIQUE NOT NULL,
-      first_name VARCHAR(100),
-      last_name VARCHAR(100),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -57,12 +55,12 @@ async function clearExistingData() {
 async function seedDatabase() {
   const seedSQL = `
     -- Вставляем тестовых пользователей
-    INSERT INTO users (email, username, first_name, last_name) VALUES
-      ('alice@example.com', 'alice123', 'Alice', 'Johnson'),
-      ('bob@example.com', 'bob456', 'Bob', 'Smith'),
-      ('charlie@example.com', 'charlie789', 'Charlie', 'Brown'),
-      ('diana@example.com', 'diana101', 'Diana', 'Prince'),
-      ('evan@example.com', 'evan202', 'Evan', 'Williams');
+    INSERT INTO users (email, username) VALUES
+      ('alice@example.com', 'alice123'),
+      ('bob@example.com', 'bob456'),
+      ('charlie@example.com', 'charlie789'),
+      ('diana@example.com', 'diana101'),
+      ('evan@example.com', 'evan202');
   `;
 
   await pool.query(seedSQL);

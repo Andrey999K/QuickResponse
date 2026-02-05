@@ -10,8 +10,9 @@ router.get("/", async (_req: Request, res: Response) => {
   res.json(users.rows);
 });
 
-router.post("/", (_req: Request, res: Response) => {
-  res.json({ message: "create users" });
+router.post("/", async (_req: Request, res: Response) => {
+  const newUser = await userService.createUser("test@ma.co", "Andrey999K");
+  res.json(newUser);
 });
 
 router.patch("/", (_req: Request, res: Response) => {
