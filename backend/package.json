@@ -1,0 +1,31 @@
+{
+  "name": "quick-response-backend",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "pg": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/express": "^5.0.6",
+    "@types/helmet": "^0.0.48",
+    "@types/node": "^25.2.0",
+    "@types/pg": "^8.16.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
