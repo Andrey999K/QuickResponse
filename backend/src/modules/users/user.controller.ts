@@ -11,8 +11,13 @@ router.get("/", async (_req: Request, res: Response) => {
 });
 
 router.post("/", async (_req: Request, res: Response) => {
-  const newUser = await userService.createUser("test@ma.co", "Andrey999K");
-  res.json(newUser);
+  try {
+    const newUser = await userService.createUser("test@ma.co", "Andrey999K", "12345");
+    res.json(newUser);
+  } catch (error) {
+    console.log("error", error)
+    res.status(409).json({ message: "Почта или ник уже заняты другим пользователем." });
+  }
 });
 
 router.patch("/", (_req: Request, res: Response) => {
