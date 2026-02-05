@@ -10,9 +10,10 @@ router.get("/", async (_req: Request, res: Response) => {
   res.json(users.rows);
 });
 
-router.post("/", async (_req: Request, res: Response) => {
+router.post("/", async (req: Request, res: Response) => {
   try {
-    const newUser = await userService.createUser("test@ma.co", "Andrey999K", "12345");
+    const { email, username, password } = req.body;
+    const newUser = await userService.createUser(email, username, password);
     res.json(newUser);
   } catch (error) {
     console.log("error", error)
