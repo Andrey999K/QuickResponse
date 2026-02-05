@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response } from "express";
 import { testMiddleware } from "./testMiddleware";
 import helmet from "helmet";
 import compression from "compression";
