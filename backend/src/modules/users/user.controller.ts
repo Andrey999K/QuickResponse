@@ -1,9 +1,13 @@
 import { Request, Response, Router } from "express";
+import { UserService } from "./user.service";
 
 const router = Router();
 
-router.get("/", (_req: Request, res: Response) => {
-  res.json({ message: "get users" });
+const userService = new UserService();
+
+router.get("/", async (_req: Request, res: Response) => {
+  const users = await userService.getAllUsers();
+  res.json(users.rows);
 });
 
 router.post("/", (_req: Request, res: Response) => {
