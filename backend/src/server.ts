@@ -1,29 +1,49 @@
-import express, { Request, Response } from 'express';
-import dotenv from 'dotenv';
+import express, { Request, Response } from "express";
 import { testMiddleware } from "./testMiddleware";
 import helmet from "helmet";
 import compression from "compression";
+import { testConnection } from "./db/connection";
+import { env } from "./config/env";
+import { initDatabase } from "./db/initDb";
+import { userRouter } from "./modules/users/user.controller";
 
 const app = express();
 
-dotenv.config();
-
-const port = process.env.PORT || 3000;
-const dbUser = process.env.DB_USER;
-const dbPassword = process.env.DB_PASSWORD;
+const port = env.PORT || 3000;
 
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
 
 async function main() {
-  app.get('/', testMiddleware, (_req: Request, res: Response) => {
-    res.send('Hello World!');
-  });
+  try {
+    // Тестируем подключение
+    await testConnection();
 
-  app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
-  });
+    // Инициализируем базу данных (создаём таблицы и заполняем данными)
+    if (env.NODE_ENV === 'development') {
+      await initDatabase();
+    }
+
+    app.get('/', testMiddleware, (_req: Request, res: Response) => {
+      res.send('Hello World!');
+    });
+
+    app.use("/api/users", userRouter);
+
+    app.use((_req, res) => {
+      res.status(404).json({ message: "Not Found" });
+    });
+
+    app.listen(port, () => {
+      console.log(`✅ Server is running on port ${port}`);
+      console.log(`✅ Database initialized with mock data`);
+    });
+
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
 }
 
 main();

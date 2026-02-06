@@ -1,12 +1,14 @@
 // db/connection.ts
 import { Pool } from 'pg';
+import { env } from "../config/env";
+import { formatDateTime } from "../utils/formatDateTime";
 
 export const pool = new Pool({
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  database: process.env.DB_NAME,
+  user: env.DB_USER,
+  password: env.DB_PASSWORD,
+  host: env.DB_HOST,
+  port: Number(env.DB_PORT),
+  database: env.DB_NAME,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -23,8 +25,9 @@ export async function testConnection() {
   try {
     const client = await pool.connect();
     const result = await client.query('SELECT NOW()');
+    const serverTime = result.rows[0].now;
     console.log('✅ PostgreSQL connected successfully!');
-    console.log('   Server time:', result.rows[0].now);
+    console.log('   Server time:', formatDateTime(serverTime));
     client.release();
     return true;
   } catch (error) {
