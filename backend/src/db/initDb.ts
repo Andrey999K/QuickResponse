@@ -1,4 +1,5 @@
 import { pool } from './connection';
+import bcrypt from "bcrypt";
 
 export async function initDatabase() {
   try {
@@ -54,17 +55,26 @@ async function clearExistingData() {
 }
 
 async function seedDatabase() {
-  const seedSQL = `
-    -- Вставляем тестовых пользователей
-    INSERT INTO users (email, username, password) VALUES
-      ('alice@example.com', 'alice123', '12345'),
-      ('bob@example.com', 'bob456', '12345'),
-      ('charlie@example.com', 'charlie789', '12345'),
-      ('diana@example.com', 'diana101', '12345'),
-      ('evan@example.com', 'evan202', '12345');
-  `;
+  const saltRounds = 10;
 
-  await pool.query(seedSQL);
+
+  const users = [
+    { email: 'alice@example.com', username: 'alice123' },
+    { email: 'bob@example.com', username: 'bob456' },
+    { email: 'charlie@example.com', username: 'charlie789' },
+    { email: 'diana@example.com', username: 'diana101' },
+    { email: 'evan@example.com', username: 'evan202' },
+  ];
+
+  for (const user of users) {
+    const hashedPassword = await bcrypt.hash("12345", saltRounds);
+    await pool.query(
+      `INSERT INTO users (email, username, password) 
+       VALUES ($1, $2, $3) 
+       ON CONFLICT (email) DO NOTHING`,
+      [user.email, user.username, hashedPassword]
+    );
+  }
   console.log('✅ Mock data inserted successfully');
 }
 
