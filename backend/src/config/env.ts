@@ -8,4 +8,5 @@ export const env = {
   DB_HOST: process.env.DB_HOST!,
   DB_PORT: Number(process.env.DB_PORT),
   DB_NAME: process.env.DB_NAME!,
+  CORS_ORIGIN: process.env.CORS_ORIGIN!,
 };

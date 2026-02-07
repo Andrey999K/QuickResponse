@@ -1,11 +1,11 @@
 import express, { Request, Response } from "express";
-import { testMiddleware } from "./testMiddleware";
 import helmet from "helmet";
 import compression from "compression";
 import { testConnection } from "./db/connection";
 import { env } from "./config/env";
 import { initDatabase } from "./db/initDb";
 import { userRouter } from "./modules/users/user.controller";
+import { corsMiddleware } from "./corsMiddleware";
 
 const app = express();
 
@@ -25,11 +25,11 @@ async function main() {
       await initDatabase();
     }
 
-    app.get('/', testMiddleware, (_req: Request, res: Response) => {
+    app.get('/', (_req: Request, res: Response) => {
       res.send('Hello World!');
     });
 
-    app.use("/api/users", userRouter);
+    app.use("/api/users", corsMiddleware, userRouter);
 
     app.use((_req, res) => {
       res.status(404).json({ message: "Not Found" });
