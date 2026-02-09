@@ -5,7 +5,8 @@ import { testConnection } from "./db/connection";
 import { env } from "./config/env";
 import { initDatabase } from "./db/initDb";
 import { userRouter } from "./modules/users/user.controller";
-import { corsMiddleware } from "./corsMiddleware";
+import { corsMiddleware } from "./middleware/corsMiddleware";
+import { logMiddleware } from "./middleware/logMiddleware";
 
 const app = express();
 
@@ -14,6 +15,8 @@ const port = env.PORT || 3000;
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
+app.use(corsMiddleware);
+app.use(logMiddleware);
 
 async function main() {
   try {
@@ -29,7 +32,7 @@ async function main() {
       res.send('Hello World!');
     });
 
-    app.use("/api/users", corsMiddleware, userRouter);
+    app.use("/api/users", userRouter);
 
     app.use((_req, res) => {
       res.status(404).json({ message: "Not Found" });

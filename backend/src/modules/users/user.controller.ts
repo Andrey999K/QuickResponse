@@ -15,13 +15,13 @@ router.post("/", async (req: Request, res: Response) => {
   try {
     const validation = createUserDto.safeParse(req.body);
     if (!validation.success) {
-      return res.status(400).json({ message: JSON.parse(validation.error?.message)[0].message })
+      return res.status(400).json({ message: JSON.parse(validation.error?.message)[0].message });
     }
     const { email, username, password } = req.body;
     const newUser = await userService.createUser(email, username, password);
-    return res.json(newUser);
+    return res.status(201).json(newUser);
   } catch (error) {
-    console.log("error", error)
+    console.log("error", error);
     return res.status(409).json({ message: "Почта или ник уже заняты другим пользователем." });
   }
 });
