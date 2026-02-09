@@ -7,6 +7,7 @@ import { initDatabase } from "./db/initDb";
 import { userRouter } from "./modules/users/user.controller";
 import { corsMiddleware } from "./middleware/corsMiddleware";
 import { logMiddleware } from "./middleware/logMiddleware";
+import { authRouter } from "./modules/auth/auth.controller";
 
 const app = express();
 
@@ -32,6 +33,7 @@ async function main() {
       res.send('Hello World!');
     });
 
+    app.use("/api/auth", authRouter);
     app.use("/api/users", userRouter);
 
     app.use((_req, res) => {
