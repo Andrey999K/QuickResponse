@@ -9,7 +9,7 @@ export async function initDatabase() {
     await createTables();
 
     // 2. Очистка существующих данных (опционально)
-    await clearExistingData();
+    // await clearExistingData();
 
     // 3. Заполнение моковыми данными
     await seedDatabase();
@@ -44,15 +44,15 @@ async function createTables() {
   console.log('✅ Tables created successfully');
 }
 
-async function clearExistingData() {
-  // Если хотите только очищать данные без удаления таблиц
-  const clearSQL = `
-    TRUNCATE TABLE users RESTART IDENTITY CASCADE;
-  `;
-
-  await pool.query(clearSQL);
-  console.log('✅ Existing data cleared');
-}
+// async function clearExistingData() {
+//   // Если хотите только очищать данные без удаления таблиц
+//   const clearSQL = `
+//     TRUNCATE TABLE users RESTART IDENTITY CASCADE;
+//   `;
+//
+//   await pool.query(clearSQL);
+//   console.log('✅ Existing data cleared');
+// }
 
 async function seedDatabase() {
   const saltRounds = 10;
