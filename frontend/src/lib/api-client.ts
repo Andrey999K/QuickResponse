@@ -44,13 +44,13 @@ class ApiClient {
     return this.request<T>(endpoint, { ...options, method: "GET" });
   }
 
-  // post<T>(endpoint: string, data?: any, options?: RequestInit): Promise<T> {
-  //   return this.request<T>(endpoint, {
-  //     ...options,
-  //     method: "POST",
-  //     body: data ? JSON.stringify(data) : undefined,
-  //   });
-  // }
+  post<T>(endpoint: string, data?: object, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "POST",
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  }
 
   // аналогично put, patch, delete
 }
