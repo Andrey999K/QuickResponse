@@ -7,6 +7,8 @@ import { initDatabase } from "./db/initDb";
 import { userRouter } from "./modules/users/user.controller";
 import { corsMiddleware } from "./middleware/corsMiddleware";
 import { logMiddleware } from "./middleware/logMiddleware";
+import { authRouter } from "./modules/auth/auth.controller";
+import { authMiddleware } from "./middleware/authMiddleware";
 
 const app = express();
 
@@ -32,7 +34,8 @@ async function main() {
       res.send('Hello World!');
     });
 
-    app.use("/api/users", userRouter);
+    app.use("/api/auth", authRouter);
+    app.use("/api/users", authMiddleware, userRouter);
 
     app.use((_req, res) => {
       res.status(404).json({ message: "Not Found" });
@@ -41,6 +44,8 @@ async function main() {
     app.listen(port, () => {
       console.log(`✅ Server is running on port ${port}`);
       console.log(`✅ Database initialized with mock data`);
+      console.log(`✅ Try: http://localhost:${port}/`);
+      console.log(`✅ Try: http://localhost:${port}/api/auth/signup`);
     });
 
   } catch (error) {
