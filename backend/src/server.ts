@@ -9,8 +9,6 @@ import { corsMiddleware } from "./middleware/corsMiddleware";
 import { logMiddleware } from "./middleware/logMiddleware";
 import { authRouter } from "./modules/auth/auth.controller";
 import { authMiddleware } from "./middleware/authMiddleware";
-import { validate } from "./middleware/validationMiddleware";
-import { createUserDto } from "./modules/users/user.dto";
 
 const app = express();
 
@@ -36,7 +34,7 @@ async function main() {
       res.send('Hello World!');
     });
 
-    app.use("/api/auth", validate(createUserDto), authRouter);
+    app.use("/api/auth", authRouter);
     app.use("/api/users", authMiddleware, userRouter);
 
     app.use((_req, res) => {
