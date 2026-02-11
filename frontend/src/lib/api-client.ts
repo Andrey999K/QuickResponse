@@ -15,7 +15,6 @@ class ApiClient {
 
     const headers = {
       "Content-Type": "application/json",
-      "Origin": "http://localhost:3000",
       ...options.headers,
     };
 
@@ -49,7 +48,7 @@ class ApiClient {
       ...options,
       method: "POST",
       body: data ? JSON.stringify(data) : undefined,
-    })
+    });
   }
 
   // аналогично put, patch, delete

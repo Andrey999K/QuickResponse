@@ -9,64 +9,72 @@ const router = Router();
 
 const userService = new UserService();
 
-router.post("/signup", validate(createUserDto), async (req: Request, res: Response) => {
-  try {
-    const { email, username, password } = req.body;
-    const userExists = await userService.userExists(email);
-    if (!userExists) {
+router.post(
+  "/signup",
+  validate(createUserDto),
+  async (req: Request, res: Response) => {
+    try {
+      const { email, username, password } = req.body;
+      const userExists = await userService.userExists(email);
+      if (!userExists) {
+        const newUser = await userService.createUser(email, username, password);
 
-      const newUser = await userService.createUser(email, username, password);
+        const token = jwt.sign({ userId: newUser.id }, env.JWT_SECRET, {
+          expiresIn: "7d",
+        });
 
-      const token = jwt.sign(
-        { userId: newUser.id },
-        env.JWT_SECRET,
-        { expiresIn: '7d' }
-      );
+        return res.status(201).json({
+          token,
+          user: {
+            id: newUser.id,
+            email: newUser.email,
+            username: newUser.username,
+          },
+        });
+      }
+      return res
+        .status(409)
+        .json({ message: "Почта или ник уже заняты другим пользователем." });
+    } catch (error) {
+      console.log("error", error);
+      return res
+        .status(500)
+        .json({ message: "Непредвиденная ошибка сервера!" });
+    }
+  },
+);
 
-      return res.status(201).json({
-        token,
-        user: {
-          id: newUser.id,
-          email: newUser.email,
-          username: newUser.username
-        }
+router.post(
+  "/login",
+  validate(loginUserDto),
+  async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body;
+      const user = await userService.validateUser(email, password);
+
+      if (!user) {
+        return res
+          .status(401)
+          .json({ message: "Incorrect email or password." });
+      }
+
+      const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
+        expiresIn: "7d",
       });
 
+      return res.json({
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+        },
+      });
+    } catch (error) {
+      console.log("error", error);
+      return res.status(500).json({ message: "Internal server error!" });
     }
-    return res.status(409).json({ message: "Почта или ник уже заняты другим пользователем." });
-  } catch (error) {
-    console.log("error", error);
-    return res.status(500).json({ message: "Непредвиденная ошибка сервера!" });
-  }
-});
-
-router.post("/login", validate(loginUserDto), async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    const user = await userService.validateUser(email, password);
-
-    if (!user) {
-      return res.status(401).json({ message: "Incorrect email or password." });
-    }
-
-    const token = jwt.sign(
-      { userId: user.id },
-      env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    return res.json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username
-      }
-    });
-  } catch (error) {
-    console.log("error", error);
-    return res.status(500).json({ message: "Internal server error!" });
-  }
-});
+  },
+);
 
 export const authRouter = router;

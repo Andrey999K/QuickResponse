@@ -4,8 +4,12 @@ import { Input } from "@/components/common/Input";
 import { Button } from "@/components/common/Button";
 import { SubmitEvent } from "react";
 import { apiClient } from "@/lib/api-client";
+import { SignUpResponse } from "@/types/signUpResponse";
+import { useRouter } from "next/navigation";
 
 export default function SignUpPage() {
+  const router = useRouter();
+
   const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -18,11 +22,12 @@ export default function SignUpPage() {
     };
 
     console.log("Sending data:", data);
-    // console.log("handleSubmit");
-    // apiClient.post("api/auth/signup", {}).then(res => console.log(res));
-    // apiClient
-    //   .get("/api/users")
-    //   .then((response) => console.log("response", response));
+    apiClient.post<SignUpResponse>("/api/auth/signup", data).then((res) => {
+      if (res.token) {
+        localStorage.setItem("authToken", res.token);
+        router.push("/dashboard");
+      }
+    });
   };
 
   return (
@@ -31,7 +36,7 @@ export default function SignUpPage() {
         <Input name="email" placeholder="Введите email" />
         <Input name="username" placeholder="Введите username" />
         <Input name="password" placeholder="Введите пароль" type="password" />
-        <Button>Зарегистрироваться</Button>
+        <Button type="submit">Зарегистрироваться</Button>
       </form>
     </div>
   );
