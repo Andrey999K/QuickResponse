@@ -1,6 +1,5 @@
 {
   "devDependencies": {
-    "@types/morgan": "^1.9.10",
-    "morgan": "^1.10.1"
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.1"
   }
 }

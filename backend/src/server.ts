@@ -1,15 +1,15 @@
+import compression from "compression";
 import express, { Request, Response } from "express";
 import helmet from "helmet";
-import compression from "compression";
-import { testConnection } from "./db/connection";
-import { env } from "./config/env";
-import { initDatabase } from "./db/initDb";
-import { userRouter } from "./modules/users/user.controller";
+import morgan from "morgan";
+import { authMiddleware } from "./middleware/authMiddleware";
 import { corsMiddleware } from "./middleware/corsMiddleware";
 import { logMiddleware } from "./middleware/logMiddleware";
+import { env } from "./config/env";
+import { testConnection } from "./db/connection";
+import { initDatabase } from "./db/initDb";
 import { authRouter } from "./modules/auth/auth.controller";
-import { authMiddleware } from "./middleware/authMiddleware";
-import morgan from "morgan";
+import { userRouter } from "./modules/users/user.controller";
 
 const app = express();
 
