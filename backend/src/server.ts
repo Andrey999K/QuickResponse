@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { authMiddleware } from "./middleware/auth.middleware";
 import { corsMiddleware } from "./middleware/cors.middleware";
+import { errorHandler, notFound } from "@/middleware/error.middleware";
 import { env } from "./config/env";
 import { testConnection } from "./db/connection";
 import { initDatabase } from "./db/initDb";
@@ -38,9 +39,12 @@ async function main() {
     app.use("/api/auth", authRouter);
     app.use("/api/users", authMiddleware, userRouter);
 
-    app.use((_req, res) => {
-      res.status(404).json({ message: "Not Found" });
-    });
+    app.use(notFound);
+    app.use(errorHandler);
+
+    // app.use((_req, res) => {
+    //   res.status(404).json({ message: "Not Found" });
+    // });
 
     app.listen(port, () => {
       console.log(`✅ Server is running on port ${port}`);
