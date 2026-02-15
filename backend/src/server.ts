@@ -44,7 +44,6 @@ async function main() {
 
     app.listen(port, () => {
       console.log(`✅ Server is running on port ${port}`);
-      console.log(`✅ Database initialized with mock data`);
       console.log(`✅ Try: http://localhost:${port}/`);
       console.log(`✅ Try: http://localhost:${port}/api/auth/signup`);
     });
