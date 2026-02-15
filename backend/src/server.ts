@@ -9,6 +9,7 @@ import { corsMiddleware } from "./middleware/corsMiddleware";
 import { logMiddleware } from "./middleware/logMiddleware";
 import { authRouter } from "./modules/auth/auth.controller";
 import { authMiddleware } from "./middleware/authMiddleware";
+import morgan from "morgan";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(compression());
 app.use(express.json());
 app.use(corsMiddleware);
 app.use(logMiddleware);
+if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
 async function main() {
   try {
@@ -26,12 +28,12 @@ async function main() {
     await testConnection();
 
     // Инициализируем базу данных (создаём таблицы и заполняем данными)
-    if (env.NODE_ENV === 'development') {
+    if (env.NODE_ENV === "development") {
       await initDatabase();
     }
 
-    app.get('/', (_req: Request, res: Response) => {
-      res.send('Hello World!');
+    app.get("/", (_req: Request, res: Response) => {
+      res.send("Hello World!");
     });
 
     app.use("/api/auth", authRouter);
@@ -47,9 +49,8 @@ async function main() {
       console.log(`✅ Try: http://localhost:${port}/`);
       console.log(`✅ Try: http://localhost:${port}/api/auth/signup`);
     });
-
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 }
