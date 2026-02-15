@@ -1,9 +1,9 @@
 import { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
-import { validate } from "../../middleware/validation.middleware";
-import { env } from "../../config/env";
+import { validate } from "@/middleware/validation.middleware";
 import { createUserDto, loginUserDto } from "../users/user.dto";
 import { UserService } from "../users/user.service";
+import { env } from "@/config/env";
 
 const router = Router();
 

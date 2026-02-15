@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { env } from "../config/env";
+import { env } from "@/config/env";
 
 export interface AuthRequest extends Request {
   userId?: number;
@@ -16,15 +16,15 @@ export const authMiddleware = async (
 
     if (!authHeader) {
       return res.status(401).json({
-        message: "Токен не предоставлен"
+        message: "Токен не предоставлен",
       });
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({
-        message: "Неверный формат токена"
+        message: "Неверный формат токена",
       });
     }
 
@@ -37,25 +37,24 @@ export const authMiddleware = async (
     console.log("✅ Token verified, userId:", decoded.userId);
 
     return next();
-
   } catch (error) {
     // Обрабатываем разные типы ошибок
     if (error instanceof jwt.TokenExpiredError) {
       return res.status(401).json({
-        message: "Token expired"
+        message: "Token expired",
       });
     }
 
     if (error instanceof jwt.JsonWebTokenError) {
       return res.status(401).json({
-        message: "Invalid token"
+        message: "Invalid token",
       });
     }
 
     // Любая другая ошибка
     console.error("Auth middleware error:", error);
     return res.status(500).json({
-      message: "Error checking token"
+      message: "Error checking token",
     });
   }
 };
