@@ -4,7 +4,6 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { authMiddleware } from "./middleware/auth.middleware";
 import { corsMiddleware } from "./middleware/cors.middleware";
-import { logMiddleware } from "./middleware/log.middleware";
 import { env } from "./config/env";
 import { testConnection } from "./db/connection";
 import { initDatabase } from "./db/initDb";
@@ -19,7 +18,7 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json());
 app.use(corsMiddleware);
-app.use(logMiddleware);
+
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
 async function main() {
