@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "@/config/env";
+import { logger } from "@/utils/log";
 
 export interface AuthRequest extends Request {
   userId?: number;
@@ -34,7 +35,8 @@ export const authMiddleware = async (
     // Добавляем userId в request
     req.userId = decoded.userId;
 
-    console.log("✅ Token verified, userId:", decoded.userId);
+    logger.info(`Token verified for userId: ${decoded.userId}`);
+    // console.log("✅ Token verified, userId:", decoded.userId);
 
     return next();
   } catch (error) {

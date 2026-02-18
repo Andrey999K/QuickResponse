@@ -2,6 +2,7 @@
 import { Pool } from "pg";
 import { env } from "@/config/env";
 import { formatDateTime } from "@/utils/formatDateTime";
+import { logger } from "@/utils/log";
 
 export const pool = new Pool({
   user: env.DB_USER,
@@ -12,11 +13,12 @@ export const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  options: "-c lc_messages=en_US.UTF-8",
 });
 
 // Обработка ошибок пула
 pool.on("error", (err) => {
-  console.error("Unexpected error on idle client", err);
+  logger.error("Unexpected error on idle client: " + err);
   process.exit(-1);
 });
 
@@ -26,12 +28,11 @@ export async function testConnection() {
     const client = await pool.connect();
     const result = await client.query("SELECT NOW()");
     const serverTime = result.rows[0].now;
-    console.log("✅ PostgreSQL connected successfully!");
-    console.log("   Server time:", formatDateTime(serverTime));
+    logger.info("PostgreSQL connected successfully! Server time: " + formatDateTime(serverTime));
     client.release();
     return true;
   } catch (error) {
-    console.error("❌ PostgreSQL connection failed:", error);
+    logger.error("PostgreSQL connection failed: " + error);
     return false;
   }
 }

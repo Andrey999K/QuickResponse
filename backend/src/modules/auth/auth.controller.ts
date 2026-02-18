@@ -4,6 +4,7 @@ import { validate } from "@/middleware/validation.middleware";
 import { createUserDto, loginUserDto } from "../users/user.dto";
 import { UserService } from "../users/user.service";
 import { env } from "@/config/env";
+import { logger } from "@/utils/log";
 
 const router = Router();
 
@@ -36,7 +37,7 @@ router.post(
         .status(409)
         .json({ message: "Почта или ник уже заняты другим пользователем." });
     } catch (error) {
-      console.log("error", error);
+      logger.error("Error during user signup: " + error);
       return res
         .status(500)
         .json({ message: "Непредвиденная ошибка сервера!" });
@@ -71,7 +72,7 @@ router.post(
         },
       });
     } catch (error) {
-      console.log("error", error);
+      logger.error("Error during user login: " + error);
       return res.status(500).json({ message: "Internal server error!" });
     }
   }

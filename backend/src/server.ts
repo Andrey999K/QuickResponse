@@ -10,6 +10,7 @@ import { testConnection } from "./db/connection";
 import { initDatabase } from "./db/initDb";
 import { authRouter } from "./modules/auth/auth.controller";
 import { userRouter } from "./modules/users/user.controller";
+import { logger } from "@/utils/log";
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(corsMiddleware);
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
 async function main() {
+
   try {
     // Тестируем подключение
     await testConnection();
@@ -47,9 +49,9 @@ async function main() {
     // });
 
     app.listen(port, () => {
-      console.log(`✅ Server is running on port ${port}`);
-      console.log(`✅ Try: http://localhost:${port}/`);
-      console.log(`✅ Try: http://localhost:${port}/api/auth/signup`);
+      logger.info(`✅ Server is running on port ${port}`);
+      // console.log(`✅ Try: http://localhost:${port}/`);
+      // console.log(`✅ Try: http://localhost:${port}/api/auth/signup`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);
