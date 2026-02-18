@@ -28,7 +28,11 @@
     "noFallthroughCasesInSwitch": true,                  /* Enable error reporting for fallthrough cases in switch statements */
     "noUncheckedIndexedAccess": true,                    /* Add 'undefined' to a type when accessed using an index */
     "exactOptionalPropertyTypes": true,                  /* Differentiate between undefined and not present */
-    
+
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Completeness */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files */
   },

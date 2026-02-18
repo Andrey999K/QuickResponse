@@ -1,9 +1,9 @@
 import { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
+import { validate } from "@/middleware/validation.middleware";
 import { createUserDto, loginUserDto } from "../users/user.dto";
 import { UserService } from "../users/user.service";
-import { env } from "../../config/env";
-import { validate } from "../../middleware/validationMiddleware";
+import { env } from "@/config/env";
 
 const router = Router();
 
@@ -41,7 +41,7 @@ router.post(
         .status(500)
         .json({ message: "Непредвиденная ошибка сервера!" });
     }
-  },
+  }
 );
 
 router.post(
@@ -74,7 +74,7 @@ router.post(
       console.log("error", error);
       return res.status(500).json({ message: "Internal server error!" });
     }
-  },
+  }
 );
 
 export const authRouter = router;

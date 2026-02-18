@@ -1,9 +1,10 @@
-import { pool } from './connection';
 import bcrypt from "bcrypt";
+import "colors";
+import { pool } from "./connection";
 
 export async function initDatabase() {
   try {
-    console.log('🔄 Initializing database...');
+    console.log("🔄 Initializing database...".blue);
 
     // 1. Создание таблиц
     await createTables();
@@ -14,9 +15,9 @@ export async function initDatabase() {
     // 3. Заполнение моковыми данными
     await seedDatabase();
 
-    console.log('✅ Database initialized successfully!');
+    console.log("✅ Database initialized successfully!".blue);
   } catch (error) {
-    console.error('❌ Database initialization failed:', error);
+    console.error("❌ Database initialization failed:".red, error);
     throw error;
   }
 }
@@ -41,7 +42,7 @@ async function createTables() {
   `;
 
   await pool.query(createTablesSQL);
-  console.log('✅ Tables created successfully');
+  // console.log("✅ Tables created successfully");
 }
 
 // async function clearExistingData() {
@@ -57,13 +58,12 @@ async function createTables() {
 async function seedDatabase() {
   const saltRounds = 10;
 
-
   const users = [
-    { email: 'alice@example.com', username: 'alice123' },
-    { email: 'bob@example.com', username: 'bob456' },
-    { email: 'charlie@example.com', username: 'charlie789' },
-    { email: 'diana@example.com', username: 'diana101' },
-    { email: 'evan@example.com', username: 'evan202' },
+    { email: "alice@example.com", username: "alice123" },
+    { email: "bob@example.com", username: "bob456" },
+    { email: "charlie@example.com", username: "charlie789" },
+    { email: "diana@example.com", username: "diana101" },
+    { email: "evan@example.com", username: "evan202" },
   ];
 
   for (const user of users) {
@@ -75,7 +75,7 @@ async function seedDatabase() {
       [user.email, user.username, hashedPassword]
     );
   }
-  console.log('✅ Mock data inserted successfully');
+  // console.log("✅ Mock data inserted successfully");
 }
 
 // Функция для проверки, существует ли уже база данных (опционально)
