@@ -1,10 +1,8 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "@/config/env";
-
-export interface AuthRequest extends Request {
-  userId?: number;
-}
+import { logger } from "@/utils/log";
+import { AuthRequest } from "@/types/authRequest";
 
 export const authMiddleware = async (
   req: AuthRequest,
@@ -14,9 +12,9 @@ export const authMiddleware = async (
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer')) {
       return res.status(401).json({
-        message: "Токен не предоставлен",
+        message: "No token provided",
       });
     }
 
@@ -24,7 +22,7 @@ export const authMiddleware = async (
 
     if (!token) {
       return res.status(401).json({
-        message: "Неверный формат токена",
+        message: "Invalid token format",
       });
     }
 
@@ -34,7 +32,8 @@ export const authMiddleware = async (
     // Добавляем userId в request
     req.userId = decoded.userId;
 
-    console.log("✅ Token verified, userId:", decoded.userId);
+    logger.info(`Token verified for userId: ${decoded.userId}`);
+    // console.log("✅ Token verified, userId:", decoded.userId);
 
     return next();
   } catch (error) {
@@ -52,9 +51,9 @@ export const authMiddleware = async (
     }
 
     // Любая другая ошибка
-    console.error("Auth middleware error:", error);
+    logger.error(`Auth middleware error: ${error}`);
     return res.status(500).json({
-      message: "Error checking token",
+      message: "Authentication error",
     });
   }
 };

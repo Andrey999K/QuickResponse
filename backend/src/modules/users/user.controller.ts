@@ -1,14 +1,31 @@
-import { Request, Response, Router } from "express";
+import { Request, Response } from "express";
 import { UserService } from "./user.service";
-
-const router = Router();
+import { AuthRequest } from "@/types/authRequest";
 
 const userService = new UserService();
 
-router.get("/", async (_req: Request, res: Response) => {
+export const getAllUsers = async (_req: Request, res: Response) => {
+  console.log("ewewfwfewew");
   const users = await userService.getAllUsers();
   res.json(users.rows);
-});
+};
+
+export const createUser = async (_req: Request, res: Response) => {
+  res.json({ message: "create users" });
+};
+
+export const updateUser = async (_req: Request, res: Response) => {
+  res.json({ message: "update users" });
+};
+
+export const deleteUser = async (_req: Request, res: Response) => {
+  res.json({ message: "delete users" });
+};
+
+export const getUserProfile = async (req: AuthRequest, res: Response) => {
+  const user = await userService.getUser(req.userId!);
+  res.json(user);
+};
 
 // router.post("/", async (req: Request, res: Response) => {
 //   try {
@@ -24,13 +41,13 @@ router.get("/", async (_req: Request, res: Response) => {
 //     return res.status(409).json({ message: "Почта или ник уже заняты другим пользователем." });
 //   }
 // });
-
-router.patch("/", (_req: Request, res: Response) => {
-  res.json({ message: "update users" });
-});
-
-router.delete("/", (_req: Request, res: Response) => {
-  res.json({ message: "delete users" });
-});
-
-export const userRouter = router;
+//
+// router.patch("/", (_req: Request, res: Response) => {
+//   res.json({ message: "update users" });
+// });
+//
+// router.delete("/", (_req: Request, res: Response) => {
+//   res.json({ message: "delete users" });
+// });
+//
+// export const userRoutes = router;

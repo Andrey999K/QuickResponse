@@ -1,10 +1,11 @@
 import bcrypt from "bcrypt";
 import "colors";
 import { pool } from "./connection";
+import { logger } from "@/utils/log";
 
 export async function initDatabase() {
   try {
-    console.log("🔄 Initializing database...".blue);
+    logger.info("Initializing database...".blue);
 
     // 1. Создание таблиц
     await createTables();
@@ -15,9 +16,9 @@ export async function initDatabase() {
     // 3. Заполнение моковыми данными
     await seedDatabase();
 
-    console.log("✅ Database initialized successfully!".blue);
+    logger.info("Database initialized successfully!".blue);
   } catch (error) {
-    console.error("❌ Database initialization failed:".red, error);
+    logger.error("Database initialization failed: " + error);
     throw error;
   }
 }
