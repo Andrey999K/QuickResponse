@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { UserService } from "./user.service";
+import { AuthRequest } from "@/types/authRequest";
 
 const userService = new UserService();
 
@@ -19,6 +20,11 @@ export const updateUser = async (_req: Request, res: Response) => {
 
 export const deleteUser = async (_req: Request, res: Response) => {
   res.json({ message: "delete users" });
+};
+
+export const getUserProfile = async (req: AuthRequest, res: Response) => {
+  const user = await userService.getUser(req.userId!);
+  res.json(user);
 };
 
 // router.post("/", async (req: Request, res: Response) => {
