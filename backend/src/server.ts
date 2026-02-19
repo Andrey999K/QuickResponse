@@ -6,11 +6,10 @@ import { authMiddleware } from "./middleware/auth.middleware";
 import { corsMiddleware } from "./middleware/cors.middleware";
 import { errorHandler, notFound } from "@/middleware/error.middleware";
 import { env } from "./config/env";
-import { testConnection } from "./db/connection";
-import { initDatabase } from "./db/initDb";
-import { authRouter } from "./modules/auth/auth.controller";
-import { userRouter } from "./modules/users/user.controller";
+import { testConnection } from "@/config/db/connection";
+import { userRoutes } from "./modules/users/user.controller";
 import { logger } from "@/utils/log";
+import { authRoutes } from "@/modules/auth/auth.routes";
 
 const app = express();
 
@@ -21,7 +20,7 @@ app.use(compression());
 app.use(express.json());
 app.use(corsMiddleware);
 
-if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
+if (env.NODE_ENV === "development") app.use(morgan("dev"));
 
 async function main() {
 
@@ -30,28 +29,22 @@ async function main() {
     await testConnection();
 
     // Инициализируем базу данных (создаём таблицы и заполняем данными)
-    if (env.NODE_ENV === "development") {
-      await initDatabase();
-    }
+    // if (env.NODE_ENV === "development") {
+    //   await initDatabase();
+    // }
 
     app.get("/", (_req: Request, res: Response) => {
       res.send("Hello World!");
     });
 
-    app.use("/api/auth", authRouter);
-    app.use("/api/users", authMiddleware, userRouter);
+    app.use("/api/auth", authRoutes);
+    app.use("/api/users", authMiddleware, userRoutes);
 
     app.use(notFound);
     app.use(errorHandler);
 
-    // app.use((_req, res) => {
-    //   res.status(404).json({ message: "Not Found" });
-    // });
-
     app.listen(port, () => {
       logger.info(`✅ Server is running on port ${port}`);
-      // console.log(`✅ Try: http://localhost:${port}/`);
-      // console.log(`✅ Try: http://localhost:${port}/api/auth/signup`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);
