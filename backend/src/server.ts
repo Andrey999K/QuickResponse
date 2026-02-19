@@ -7,9 +7,9 @@ import { corsMiddleware } from "./middleware/cors.middleware";
 import { errorHandler, notFound } from "@/middleware/error.middleware";
 import { env } from "./config/env";
 import { testConnection } from "@/config/db/connection";
-import { userRoutes } from "./modules/users/user.controller";
 import { logger } from "@/utils/log";
 import { authRoutes } from "@/modules/auth/auth.routes";
+import { userRoutes } from "@/modules/users/user.routes";
 
 const app = express();
 

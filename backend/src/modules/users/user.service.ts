@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { User } from "./user.types";
-import { pool } from "@/db/connection";
+import { pool } from "@/config/db/connection";
 
 export class UserService {
   async createUser(
@@ -21,30 +21,6 @@ export class UserService {
     } catch (error) {
       console.error(error);
       throw new Error("Error while create new users");
-    }
-  }
-
-  async validateUser(email: string, password: string): Promise<User | null> {
-    try {
-      const query = {
-        text: "SELECT * FROM users WHERE email = $1",
-        values: [email],
-      };
-      const result = await pool.query(query);
-      const user = result.rows[0];
-
-      if (!user) {
-        return null;
-      }
-
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        return null;
-      }
-      return user;
-    } catch (error) {
-      console.error("Validate user error:", error);
-      throw new Error("Error validating user");
     }
   }
 
