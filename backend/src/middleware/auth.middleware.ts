@@ -1,11 +1,8 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "@/config/env";
 import { logger } from "@/utils/log";
-
-export interface AuthRequest extends Request {
-  userId?: number;
-}
+import { AuthRequest } from "@/types/authRequest";
 
 export const authMiddleware = async (
   req: AuthRequest,
