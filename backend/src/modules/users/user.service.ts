@@ -24,19 +24,19 @@ export class UserService {
     }
   }
 
-  // async getUser(email: string): Promise<User | null> {
-  //   try {
-  //     const query = {
-  //       text: "SELECT * FROM users WHERE email = $1",
-  //       values: [email]
-  //     }
-  //     const result = await pool.query(query);
-  //     return result.rows[0];
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw new Error("Error get users");
-  //   }
-  // }
+  async getUser(userId: number): Promise<User | null> {
+    try {
+      const query = {
+        text: "SELECT id, email, username FROM users WHERE id = $1",
+        values: [userId]
+      }
+      const result = await pool.query(query);
+      return result.rows[0];
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error get users");
+    }
+  }
 
   async userExists(email: string): Promise<boolean> {
     try {
