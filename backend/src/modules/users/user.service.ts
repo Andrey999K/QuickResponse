@@ -38,11 +38,11 @@ export class UserService {
     }
   }
 
-  async userExists(email: string): Promise<boolean> {
+  async userExists(email: string, username: string): Promise<boolean> {
     try {
       const query = {
-        text: "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1) as exists",
-        values: [email],
+        text: "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1 OR username = $2) as exists",
+        values: [email, username],
       };
       const result = await pool.query(query);
       return result.rows[0].exists;
