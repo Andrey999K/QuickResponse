@@ -10,7 +10,7 @@ const userService = new UserService();
 
 export const signupUser = async (req: Request, res: Response) => {
     const { email, username, password } = req.body;
-    const userExists = await userService.userExists(email);
+    const userExists = await userService.userExists(email, username);
     if (!userExists) {
       const newUser = await userService.createUser(email, username, password);
 
