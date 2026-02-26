@@ -16,6 +16,14 @@
   --color-primary-900: #064e3b;
 }
 
+/* Тёмная тема */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #111827;
+    --foreground: #f9fafb;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -51,4 +59,11 @@ body {
 
 .ant-card-body {
   height: 100%;
+}
+
+/* Тёмный текст для кнопки "Войти через hh.ru" в тёмной теме */
+@media (prefers-color-scheme: dark) {
+  .ant-btn-primary {
+    color: #111827 !important;
+  }
 }

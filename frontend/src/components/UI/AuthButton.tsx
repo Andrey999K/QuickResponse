@@ -20,7 +20,7 @@ export const AuthButton = async ({
   return (
     <>
       <Link href={"/dashboard/search"}>
-      {/*<Link href={user ? "/dashboard/search" : generateAuthUrl()}>*/}
+        {/*<Link href={user ? "/dashboard/search" : generateAuthUrl()}>*/}
         <Button
           type={primary ? "primary" : "default"}
           className="!font-semibold"
