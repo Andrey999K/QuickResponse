@@ -61,7 +61,7 @@ body {
   height: 100%;
 }
 
-/* Тёмный текст для кнопки "Войти через hh.ru" в тёмной теме */
+/* Тёмный текст для кнопки "Войти" в тёмной теме */
 @media (prefers-color-scheme: dark) {
   .ant-btn-primary {
     color: #111827 !important;

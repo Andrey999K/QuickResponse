@@ -14,12 +14,12 @@ export const AuthButton = async ({
 }: AuthButtonProps) => {
   // const user = await getCurrentUser();
   const user = null;
-  const textButton =
-    text || (user ? "Перейти к откликам" : "Войти через hh.ru");
+  const textButton = text || (user ? "Перейти к откликам" : "Войти");
 
   return (
     <>
-      <Link href={"/dashboard/search"}>
+      <Link href={"/login"}>
+        {/*<Link href={"/dashboard/search"}>*/}
         {/*<Link href={user ? "/dashboard/search" : generateAuthUrl()}>*/}
         <Button
           type={primary ? "primary" : "default"}
