@@ -31,7 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AntdProvider>{children}</AntdProvider>
-        <ToastContainer />
+        <ToastContainer autoClose={5000} closeOnClick />
       </body>
     </html>
   );

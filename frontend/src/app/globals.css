@@ -67,3 +67,17 @@ body {
     color: #111827 !important;
   }
 }
+
+/* Переопределяем стили toastify напрямую */
+.Toastify__toast {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-family: inherit !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .Toastify__toast {
+    background: #1f2937 !important;
+    color: #f9fafb !important;
+  }
+}

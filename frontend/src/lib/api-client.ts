@@ -28,13 +28,12 @@ class ApiClient {
       headers,
     });
 
-    // if (!response.ok) {
-    //   // const error = await response.json().catch(() => ({
-    //   //   message: `HTTP ${response.status}`,
-    //   // }));
-    //   // throw new Error(error.message || "Request failed");
-    //   throw new Error("Request failed");
-    // }
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({
+        message: `HTTP ${response.status}`,
+      }));
+      throw new Error(error.message || "Request failed");
+    }
 
     return (await response.json()) as T;
   }
