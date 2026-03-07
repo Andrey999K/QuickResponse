@@ -70,3 +70,29 @@ export const loginUser = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal server error!" });
   }
 };
+
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies.authToken;
+
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: number };
+    const user = await userService.getUser(decoded.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    });
+  } catch (error) {
+    logger.error("Error during getMe: " + error);
+    return res.status(401).json({ message: "Invalid token" });
+  }
+};
