@@ -58,14 +58,13 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             >
               <div
                 className="bg-gray-300 dark:bg-gray-600 flex items-center justify-center rounded-full h-12 w-12 text-xl text-gray-700 dark:text-gray-200">
-                {/*{firstName?.[0] || ""}*/}
-                {/*{lastName?.[0] || ""}*/}
+                {user?.username[0]}
               </div>
               <div className="flex flex-col">
                 <span className="font-semibold text-gray-900 dark:text-white">
-                  {/*{firstName} {lastName}*/}
+                  {user?.username}
                 </span>
-                {/*<span className="text-gray-500 dark:text-gray-400">{email}</span>*/}
+                <span className="text-gray-500 dark:text-gray-400">{user?.email}</span>
               </div>
             </Link>
             <UserMenu />
