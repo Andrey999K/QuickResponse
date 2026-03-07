@@ -52,7 +52,7 @@ export default function SignUpPage() {
     apiClient
       .post<SignUpResponse>("/api/auth/signup", result.data)
       .then((res) => {
-        if (res.token) {
+        if (res.user) {
           router.push("/dashboard");
         }
       })
