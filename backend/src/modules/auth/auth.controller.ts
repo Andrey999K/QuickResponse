@@ -96,3 +96,13 @@ export const getMe = async (req: Request, res: Response) => {
     return res.status(401).json({ message: "Invalid token" });
   }
 };
+
+export const logoutUser = (_req: Request, res: Response) => {
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    secure: env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+
+  return res.json({ success: true });
+};
