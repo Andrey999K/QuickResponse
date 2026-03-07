@@ -3,10 +3,17 @@
 import { MoreVertical } from "@deemlol/next-icons";
 import { Button, Dropdown, MenuProps } from "antd";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { apiClient } from "@/lib/api-client";
 
 export const UserMenu = () => {
-  const handleClick = async () => {
-    // await logoutAction();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    apiClient
+      .post("/api/auth/logout")
+      .finally(() => router.push("/login"));
   };
 
   const items: MenuProps["items"] = [
@@ -23,18 +30,19 @@ export const UserMenu = () => {
     },
     {
       label: (
-        <Button type="primary" danger onClick={handleClick}>
+        <Button type="primary" danger onClick={handleLogout}>
           Выйти
         </Button>
       ),
       key: "2",
-      disabled: true,
     },
   ];
 
   return (
-    <Dropdown menu={{ items }} className="hover:cursor-pointer">
-      <MoreVertical size={24} />
-    </Dropdown>
+    <div className="cursor-pointer">
+      <Dropdown menu={{ items }}>
+        <MoreVertical size={24} />
+      </Dropdown>
+    </div>
   );
 };
