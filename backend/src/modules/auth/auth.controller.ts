@@ -8,31 +8,40 @@ import { UserService } from "@/modules/users/user.service";
 const authService = new AuthService();
 const userService = new UserService();
 
-export const signupUser = async (req: Request, res: Response) => {
-    const { email, username, password } = req.body;
-    const userExists = await userService.userExists(email, username);
-    if (!userExists) {
-      const newUser = await userService.createUser(email, username, password);
-
-      const token = jwt.sign({ userId: newUser.id }, env.JWT_SECRET, {
-        expiresIn: env.NODE_ENV === "development" ? "7d" : "1h",
-      });
-
-      return res.status(201).json({
-        token,
-        user: {
-          id: newUser.id,
-          email: newUser.email,
-          username: newUser.username,
-        },
-      });
-    }
-    return res
-      .status(409)
-      .json({ message: "Почта или ник уже заняты другим пользователем." });
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней в мс
 };
 
-export const loginUser =  async (req: Request, res: Response) => {
+export const signupUser = async (req: Request, res: Response) => {
+  const { email, username, password } = req.body;
+  const userExists = await userService.userExists(email, username);
+
+  if (!userExists) {
+    const newUser = await userService.createUser(email, username, password);
+
+    const token = jwt.sign({ userId: newUser.id }, env.JWT_SECRET, {
+      expiresIn: env.NODE_ENV === "development" ? "7d" : "1h",
+    });
+
+    res.cookie("authToken", token, COOKIE_OPTIONS);
+
+    return res.status(201).json({
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        username: newUser.username,
+      },
+    });
+  }
+  return res
+    .status(409)
+    .json({ message: "Почта или ник уже заняты другим пользователем." });
+};
+
+export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     const user = await authService.validateUser(email, password);
@@ -47,8 +56,9 @@ export const loginUser =  async (req: Request, res: Response) => {
       expiresIn: env.NODE_ENV === "development" ? "7d" : "1h",
     });
 
+    res.cookie("authToken", token, COOKIE_OPTIONS);
+
     return res.json({
-      token,
       user: {
         id: user.id,
         email: user.email,
