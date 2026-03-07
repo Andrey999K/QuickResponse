@@ -16,6 +16,7 @@ const loginSchema = z.object({
   password: z.string().min(1, "Введите пароль"),
 });
 
+type UserResponse = { id: number, email: string, username: string };
 type LoginErrors = Partial<Record<keyof z.infer<typeof loginSchema>, string>>;
 
 export default function LoginPage() {
@@ -47,12 +48,12 @@ export default function LoginPage() {
     setLoading(true);
 
     apiClient
-      .post<{ token: string }>("/api/auth/login", {
+      .post<{ user: UserResponse }>("/api/auth/login", {
         email: result.data.email,
         password: result.data.password,
       })
       .then((res) => {
-        if (res.token) {
+        if (res.user) {
           router.push("/dashboard");
         }
       })
