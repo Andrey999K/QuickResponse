@@ -53,7 +53,6 @@ export default function SignUpPage() {
       .post<SignUpResponse>("/api/auth/signup", result.data)
       .then((res) => {
         if (res.token) {
-          localStorage.setItem("authToken", res.token);
           router.push("/dashboard");
         }
       })

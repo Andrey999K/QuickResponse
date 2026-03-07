@@ -53,7 +53,6 @@ export default function LoginPage() {
       })
       .then((res) => {
         if (res.token) {
-          localStorage.setItem("authToken", res.token);
           router.push("/dashboard");
         }
       })
