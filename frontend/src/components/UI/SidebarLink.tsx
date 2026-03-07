@@ -1,9 +1,11 @@
 "use client";
 
+import { ReactNode } from "react";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import { cn } from "@/utils/cn";
-import { ReactNode } from "react";
 
 type SidebarLinkProps = {
   text: string;
@@ -13,13 +15,14 @@ type SidebarLinkProps = {
 
 export const SidebarLink = ({ text, url, icon }: SidebarLinkProps) => {
   const pathname = usePathname();
-  const isActive = (path: string) => pathname === path;
+  const isActive = pathname === url;
+
   return (
     <Link
       href={{ pathname: url }}
       className={cn(
-        "flex items-center gap-2 !text-black",
-        isActive(url) ? "font-semibold" : ""
+        "flex items-center gap-2 !text-gray-600 dark:!text-gray-300 hover:!text-primary-500 dark:hover:!text-primary-400 transition-colors",
+        isActive && "!text-primary-500 dark:!text-primary-400 font-semibold",
       )}
     >
       {icon}

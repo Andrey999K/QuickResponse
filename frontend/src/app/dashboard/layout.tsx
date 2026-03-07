@@ -1,9 +1,11 @@
+import { ReactNode } from "react";
+
+import { BarChart2, Search, Settings, User } from "@deemlol/next-icons";
 import { Card } from "antd";
+import Link from "next/link";
+
 import { Logo } from "@/components/UI/Logo";
 import { SidebarLink } from "@/components/UI/SidebarLink";
-import Link from "next/link";
-import { ReactNode } from "react";
-import { BarChart2, Search, Settings, User } from "@deemlol/next-icons";
 import { UserMenu } from "@/components/UI/UserMenu";
 
 type DashboardLayoutProps = {
@@ -11,16 +13,10 @@ type DashboardLayoutProps = {
 };
 
 const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
-  // const user = await getCurrentUser();
-
-  // if (!user) {
-  //   redirect("/");
-  // }
-  // const { email, firstName, lastName } = user!;
-
   return (
-    <div className="flex gap-2 p-2 h-screen">
-      <Card className="w-full max-w-xs !bg-gray-50">
+    <div className="flex gap-2 p-2 h-screen bg-white dark:bg-gray-900 transition-colors">
+      {/* Сайдбар */}
+      <Card className="w-full max-w-xs !bg-gray-50 dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700">
         <Logo />
         <ul className="mt-6 text-base flex flex-col gap-6">
           <SidebarLink
@@ -45,31 +41,35 @@ const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
           />
         </ul>
       </Card>
+
       <div className="flex flex-col gap-2 min-w-0 w-full">
-        <Card className="w-full !bg-gray-50 flex justify-end">
+        {/* Хедер */}
+        <Card className="w-full !bg-gray-50 dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 flex justify-end">
           <div className="flex gap-2 items-center">
             <Link
               href={{ pathname: "/dashboard/profile" }}
-              className="flex items-center gap-2 !text-black"
+              className="flex items-center gap-2 !text-black dark:!text-white"
             >
               <div
-                className="bg-gray-300 flex items-center justify-center rounded-full h-12 w-12 text-xl
-            "
-              >
+                className="bg-gray-300 dark:bg-gray-600 flex items-center justify-center rounded-full h-12 w-12 text-xl text-gray-700 dark:text-gray-200">
                 {/*{firstName?.[0] || ""}*/}
                 {/*{lastName?.[0] || ""}*/}
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold">
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {/*{firstName} {lastName}*/}
                 </span>
-                {/*<span className="text-gray-500">{email}</span>*/}
+                {/*<span className="text-gray-500 dark:text-gray-400">{email}</span>*/}
               </div>
             </Link>
             <UserMenu />
           </div>
         </Card>
-        <Card className="w-full !bg-gray-50 h-full">{children}</Card>
+
+        {/* Контент */}
+        <Card className="w-full !bg-gray-50 dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 h-full">
+          {children}
+        </Card>
       </div>
     </div>
   );
