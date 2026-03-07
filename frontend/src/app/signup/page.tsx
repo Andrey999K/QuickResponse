@@ -8,7 +8,7 @@ import { z } from "zod";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { AuthFormField } from "@/components/auth/AuthFormField";
 import { apiClient } from "@/lib/api-client";
-import { SignUpResponse } from "@/types/signUpResponse";
+import { User } from "@/types/user";
 
 const signUpSchema = z.object({
   email: z.email("Введите корректный email"),
@@ -50,7 +50,7 @@ export default function SignUpPage() {
     setLoading(true);
 
     apiClient
-      .post<SignUpResponse>("/api/auth/signup", result.data)
+      .post<{ user: User }>("/api/auth/signup", result.data)
       .then((res) => {
         if (res.user) {
           router.push("/dashboard");

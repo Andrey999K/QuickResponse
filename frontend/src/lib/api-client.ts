@@ -1,4 +1,3 @@
-// lib/api-client.ts
 const API_URL =
   `${process.env.NEXT_PUBLIC_API_URL}:${process.env.NEXT_PUBLIC_API_PORT}` ||
   "http://localhost:4000";
