@@ -1,5 +1,5 @@
-import { Wrapper } from "@/components/common/Wrapper";
+import { redirect } from "next/navigation";
 
 export default function DashboardPage() {
-  return <Wrapper>Dashboard</Wrapper>
+  redirect("/dashboard/search");
 }
