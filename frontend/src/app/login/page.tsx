@@ -10,13 +10,13 @@ import { AuthFormField } from "@/components/auth/AuthFormField";
 import { apiClient } from "@/lib/api-client";
 import { toast } from "react-toastify";
 import { log } from "@/utils/log";
+import { User } from "@/types/user";
 
 const loginSchema = z.object({
   email: z.email("Некорректный формат email").min(1, "Введите email"),
   password: z.string().min(1, "Введите пароль"),
 });
 
-type UserResponse = { id: number, email: string, username: string };
 type LoginErrors = Partial<Record<keyof z.infer<typeof loginSchema>, string>>;
 
 export default function LoginPage() {
@@ -48,7 +48,7 @@ export default function LoginPage() {
     setLoading(true);
 
     apiClient
-      .post<{ user: UserResponse }>("/api/auth/login", {
+      .post<{ user: User }>("/api/auth/login", {
         email: result.data.email,
         password: result.data.password,
       })

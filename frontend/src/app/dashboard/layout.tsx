@@ -1,5 +1,6 @@
-import { ReactNode } from "react";
+"use client";
 
+import { ReactNode } from "react";
 import { BarChart2, Search, Settings, User } from "@deemlol/next-icons";
 import { Card } from "antd";
 import Link from "next/link";
@@ -7,12 +8,17 @@ import Link from "next/link";
 import { Logo } from "@/components/UI/Logo";
 import { SidebarLink } from "@/components/UI/SidebarLink";
 import { UserMenu } from "@/components/UI/UserMenu";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 type DashboardLayoutProps = {
   children: ReactNode;
 };
 
-const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+  const { user, loading } = useCurrentUser();
+  console.log("user", user);
+  console.log("loading", loading);
+
   return (
     <div className="flex gap-2 p-2 h-screen bg-white dark:bg-gray-900 transition-colors">
       {/* Сайдбар */}
