@@ -72,16 +72,16 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
         <Row label="Исключенные слова:">{data.excludedText || "Нет"}</Row>
 
         <Row label="Исключенные компании:">
-          {/*<div>*/}
-          {/*  {(data.excludedCompanies.length &&*/}
-          {/*      data.excludedCompanies.map((company, index) => (*/}
-          {/*        <>*/}
-          {/*          <a href={`https://hh.ru/employer/${company}`}>{company}</a>*/}
-          {/*          {index !== data.excludedCompanies.length - 1 && ","}*/}
-          {/*        </>*/}
-          {/*      ))) ||*/}
-          {/*    "Не добавлено"}*/}
-          {/*</div>*/}
+          <div>
+            {(data.excludedCompanies.length &&
+                data.excludedCompanies.map((company, index) => (
+                  <>
+                    <a href={`https://hh.ru/employer/${company}`}>{company}</a>
+                    {index !== data.excludedCompanies.length - 1 && ", "}
+                  </>
+                ))) ||
+              "Не добавлено"}
+          </div>
         </Row>
 
         <Row label="Желаемая зарплата:">{data.salary || "Не добавлена"}</Row>
@@ -91,35 +91,48 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
         </Row>
 
         <Row label="Регион:">
-          {/*{data.area.length ? (*/}
-          {/*  <div className="flex">*/}
-          {/*    {data.area.map((item) => (*/}
-          {/*      <Tag key={item}>{getValueById(regions.data, String(item))}</Tag>*/}
-          {/*    ))}*/}
-          {/*  </div>*/}
-          {/*) : (*/}
-          {/*  <div>Не добавлен</div>*/}
-          {/*)}*/}
+          {data.area.length ? (
+            <div className="flex gap-1 items-center">
+              {data.area.map((item) => (
+                <Tag key={item}>{item}</Tag>
+                // <Tag key={item}>{getValueById(regions.data, String(item))}</Tag>
+              ))}
+            </div>
+          ) : (
+            <div>Не добавлен</div>
+          )}
         </Row>
 
         <Row label="График работы:">
-          {/*{data.schedule.length*/}
-          {/*  ? data.schedule.map((item, index) => (*/}
-          {/*    <Tag key={`${data.id + item + index}`}>*/}
-          {/*      {getValueById(schedule, item)}*/}
-          {/*    </Tag>*/}
-          {/*  ))*/}
-          {/*  : "Не добавлен"}*/}
+          {data.schedule.length
+            ? (
+              <div className="flex gap-1 items-center">
+                {
+                  data.schedule.map((item, index) => (
+                    <Tag key={`${data.id + item + index}`}>
+                      {item}
+                      {/*{getValueById(schedule, item)}*/}
+                    </Tag>
+                  ))
+                }
+              </div>
+            ) : "Не добавлен"}
         </Row>
 
         <Row label="Опыт работы:">
-          {/*{data.experience.length*/}
-          {/*  ? data.experience.map((item, index) => (*/}
-          {/*    <Tag key={`${data.id + item + index}`}>*/}
-          {/*      {getValueById(experience, item)}*/}
-          {/*    </Tag>*/}
-          {/*  ))*/}
-          {/*  : "Не добавлен"}*/}
+          {data.experience.length
+            ? (
+              <div className="flex gap-1 items-center">
+                {
+                  data.experience.map((item, index) => (
+                    <Tag key={`${data.id + item + index}`}>
+                      {item}
+                      {/*{getValueById(experience, item)}*/}
+                    </Tag>
+                  ))
+                }
+              </div>
+            ) : "Не добавлен"}
         </Row>
 
         <Row label="Сопроводительное письмо:">
@@ -127,16 +140,19 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
         </Row>
 
         <Row label="Дата создания:">
+          <div>{data.createdAt}</div>
           {/*<div>{convertDataTime(data.createdAt)}</div>*/}
         </Row>
       </div>
 
       <div className="mt-4 flex justify-end">
-        {/*{data.isActive ? (*/}
-        {/*  <StopSearchButton userId={data.userId} searchId={data.id} />*/}
-        {/*) : (*/}
-        {/*  <StartSearchButton userId={data.userId} searchId={data.id} />*/}
-        {/*)}*/}
+        {data.isActive ? (
+          "Активен"
+          // <StopSearchButton userId={data.userId} searchId={data.id} />
+        ) : (
+          "Не активен"
+          // <StartSearchButton userId={data.userId} searchId={data.id} />
+        )}
       </div>
     </Card>
   );
