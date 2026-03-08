@@ -9,6 +9,7 @@ import { Logo } from "@/components/UI/Logo";
 import { SidebarLink } from "@/components/UI/SidebarLink";
 import { UserMenu } from "@/components/UI/UserMenu";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { PageLoader } from "@/components/common/PageLoader";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -16,8 +17,8 @@ type DashboardLayoutProps = {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, loading } = useCurrentUser();
-  console.log("user", user);
-  console.log("loading", loading);
+
+  if (loading) return <PageLoader />;
 
   return (
     <div className="flex gap-2 p-2 h-screen bg-white dark:bg-gray-900 transition-colors">
