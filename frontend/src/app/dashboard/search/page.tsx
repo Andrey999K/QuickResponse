@@ -49,13 +49,15 @@ export default function SearchPage() {
     <div className="flex flex-col h-full max-w-screen-lg">
       {MOCK_SEARCHES.length > 0 ? (
         <>
-          <div className="flex items-center justify-between">
+          {/* Заголовок — фиксированный */}
+          <div className="flex items-center justify-between shrink-0">
             <h2 className="text-2xl font-bold w-full text-gray-900 dark:text-white">
               Мои поиски
             </h2>
             {/*<CreateSearchButton />*/}
           </div>
-          <div className="mt-6 flex flex-col gap-5 w-full max-w-screen-lg">
+          <div
+            className="mt-6 flex flex-col gap-5 w-full max-w-screen-lg overflow-y-auto min-h-0 pb-4 scrollbar-hidden">
             {MOCK_SEARCHES.map((search) => (
               <SearchCard key={search.id} data={search} />
             ))}

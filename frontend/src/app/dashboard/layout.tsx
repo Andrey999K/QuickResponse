@@ -73,9 +73,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </Card>
 
         {/* Контент */}
-        <Card className="w-full !bg-gray-50 dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 h-full">
+        <div
+          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 min-h-0 flex-1">
           {children}
-        </Card>
+        </div>
       </div>
     </div>
   );
