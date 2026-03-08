@@ -1,5 +1,6 @@
 import { Card, Tag } from "antd";
 import { ReactNode } from "react";
+import { Search } from "@/types/search";
 // import { getAllAreasFlat } from "@/actions/area-actions";
 // import { getAllDictionaries } from "@/actions/dictionary-actions";
 // import { StartSearchButton } from "@/components/UI/StartSearchButton";
@@ -23,24 +24,7 @@ const Row = ({ label, children }: { label: string; children: ReactNode }) => (
 );
 
 type SearchCardProps = {
-  data: {
-    id: string,
-    title: string,
-    isActive: boolean,
-    userId: string,
-    countVacancies: number,
-    resumeId: number,
-    text: number,
-    excludedText: number,
-    excludedCompanies: [],
-    salary: [],
-    onlyWithSalary: string,
-    area: [],
-    schedule: [],
-    experience: [],
-    coverLetter: string,
-    createdAt: string,
-  };
+  data: Search;
 };
 
 export const SearchCard = async ({ data }: SearchCardProps) => {
