@@ -1,4 +1,5 @@
 import { Card, Tag } from "antd";
+import { ReactNode } from "react";
 // import { getAllAreasFlat } from "@/actions/area-actions";
 // import { getAllDictionaries } from "@/actions/dictionary-actions";
 // import { StartSearchButton } from "@/components/UI/StartSearchButton";
@@ -10,6 +11,16 @@ import { Card, Tag } from "antd";
 // type SearchCardProps = {
 //   data: SearchType;
 // };
+
+const Row = ({ label, children }: { label: string; children: ReactNode }) => (
+  <div
+    className="odd:bg-white odd:dark:bg-transparent even:bg-gray-100 even:dark:bg-gray-700 p-2 rounded-lg flex gap-2">
+    <div className="font-bold text-gray-900 dark:text-white/60 whitespace-nowrap">
+      {label}
+    </div>
+    <div className="text-gray-700 dark:text-gray-300">{children}</div>
+  </div>
+);
 
 type SearchCardProps = {
   data: {
@@ -44,10 +55,10 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
   return (
     <Card
       key={data.id}
-      className="max-w-full w-full"
+      className="max-w-full w-full dark:!bg-gray-800 dark:!border-gray-700"
       title={
         <div className="flex items-center gap-3">
-          <h3>{data.title}</h3>
+          <h3 className="text-gray-900 dark:text-white">{data.title}</h3>
           {data.isActive ? (
             <Tag color="green">Запущен</Tag>
           ) : (
@@ -64,30 +75,19 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
       // }
     >
       <div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <div className="font-bold">Найдено вакансий:</div>
-          <div>{data.countVacancies || 0}</div>
-        </div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <div className="font-bold">Резюме:</div>
+        <Row label="Найдено вакансий:">{data.countVacancies || 0}</Row>
+
+        <Row label="Резюме:">
           <a href={`https://hh.ru/resume/${data.resumeId}`} target="_blank">
             Открыть
           </a>
-        </div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <span className="font-bold whitespace-nowrap">Ключевые слова:</span>
-          <span>{data.text || "Нет"}</span>
-        </div>
-        {/*<div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">*/}
-        {/*  <div className="font-bold">Специализации:</div>*/}
-        {/*  <div>Программист, разработчик</div>*/}
-        {/*</div>*/}
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <div className="font-bold whitespace-nowrap">Исключенные слова:</div>
-          <div>{data.excludedText || "Нет"}</div>
-        </div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <div className="font-bold">Исключенные компании:</div>
+        </Row>
+
+        <Row label="Ключевые слова:">{data.text || "Нет"}</Row>
+
+        <Row label="Исключенные слова:">{data.excludedText || "Нет"}</Row>
+
+        <Row label="Исключенные компании:">
           {/*<div>*/}
           {/*  {(data.excludedCompanies.length &&*/}
           {/*      data.excludedCompanies.map((company, index) => (*/}
@@ -98,21 +98,15 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
           {/*      ))) ||*/}
           {/*    "Не добавлено"}*/}
           {/*</div>*/}
-          {/*<div>*/}
-          {/*  Туроператор Русь, Вервэб, ГУД ВУД, Мугинов Арслан Ильдарович,*/}
-          {/*  Anykey, Яндекс Практикум*/}
-          {/*</div>*/}
-        </div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <div className="font-bold">Желаемая зарплата:</div>
-          <div>{data.salary || "Не добавлена"}</div>
-        </div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <div className="font-bold">Скрыть вакансии без зарплаты:</div>
-          <div>{data.onlyWithSalary ? "Да" : "Нет"}</div>
-        </div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <div className="font-bold">Регион:</div>
+        </Row>
+
+        <Row label="Желаемая зарплата:">{data.salary || "Не добавлена"}</Row>
+
+        <Row label="Скрыть вакансии без зарплаты:">
+          {data.onlyWithSalary ? "Да" : "Нет"}
+        </Row>
+
+        <Row label="Регион:">
           {/*{data.area.length ? (*/}
           {/*  <div className="flex">*/}
           {/*    {data.area.map((item) => (*/}
@@ -122,42 +116,37 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
           {/*) : (*/}
           {/*  <div>Не добавлен</div>*/}
           {/*)}*/}
-        </div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <div className="font-bold">График работы:</div>
-          <div>
-            {/*{data.schedule.length*/}
-            {/*  ? data.schedule.map((item, index) => (*/}
-            {/*    <Tag key={`${data.id + item + index}`}>*/}
-            {/*      {getValueById(schedule, item)}*/}
-            {/*    </Tag>*/}
-            {/*  ))*/}
-            {/*  : "Не добавлен"}*/}
-          </div>
-        </div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <div className="font-bold">Опыт работы:</div>
-          <div>
-            {/*{data.experience.length*/}
-            {/*  ? data.experience.map((item, index) => (*/}
-            {/*    <Tag key={`${data.id + item + index}`}>*/}
-            {/*      {getValueById(experience, item)}*/}
-            {/*    </Tag>*/}
-            {/*  ))*/}
-            {/*  : "Не добавлен"}*/}
-          </div>
-        </div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2 max-w-full">
-          <div className="font-bold whitespace-nowrap">
-            Сопроводительное письмо:
-          </div>
+        </Row>
+
+        <Row label="График работы:">
+          {/*{data.schedule.length*/}
+          {/*  ? data.schedule.map((item, index) => (*/}
+          {/*    <Tag key={`${data.id + item + index}`}>*/}
+          {/*      {getValueById(schedule, item)}*/}
+          {/*    </Tag>*/}
+          {/*  ))*/}
+          {/*  : "Не добавлен"}*/}
+        </Row>
+
+        <Row label="Опыт работы:">
+          {/*{data.experience.length*/}
+          {/*  ? data.experience.map((item, index) => (*/}
+          {/*    <Tag key={`${data.id + item + index}`}>*/}
+          {/*      {getValueById(experience, item)}*/}
+          {/*    </Tag>*/}
+          {/*  ))*/}
+          {/*  : "Не добавлен"}*/}
+        </Row>
+
+        <Row label="Сопроводительное письмо:">
           <p className="truncate">{data.coverLetter || "Не добавлено"}</p>
-        </div>
-        <div className="odd:bg-white even:bg-gray-100 p-2 rounded-lg flex gap-2">
-          <div className="font-bold">Дата создания:</div>
+        </Row>
+
+        <Row label="Дата создания:">
           {/*<div>{convertDataTime(data.createdAt)}</div>*/}
-        </div>
+        </Row>
       </div>
+
       <div className="mt-4 flex justify-end">
         {/*{data.isActive ? (*/}
         {/*  <StopSearchButton userId={data.userId} searchId={data.id} />*/}
