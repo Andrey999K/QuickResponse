@@ -46,7 +46,7 @@ const MOCK_SEARCHES: Search[] = [
 
 export default function SearchPage() {
   return (
-    <div className="flex flex-col h-full max-w-screen-lg">
+    <div className="flex flex-col h-full max-w-full w-full">
       {MOCK_SEARCHES.length > 0 ? (
         <>
           {/* Заголовок — фиксированный */}
@@ -57,10 +57,12 @@ export default function SearchPage() {
             {/*<CreateSearchButton />*/}
           </div>
           <div
-            className="mt-6 flex flex-col gap-5 w-full max-w-screen-lg overflow-y-auto min-h-0 pb-4 scrollbar-hidden">
-            {MOCK_SEARCHES.map((search) => (
-              <SearchCard key={search.id} data={search} />
-            ))}
+            className="mt-6 flex flex-col gap-5 w-full max-w-full overflow-y-auto min-h-0 pb-4 scrollbar-hidden w-full">
+            <div className="max-w-screen-lg">
+              {MOCK_SEARCHES.map((search) => (
+                <SearchCard key={search.id} data={search} />
+              ))}
+            </div>
           </div>
         </>
       ) : (
