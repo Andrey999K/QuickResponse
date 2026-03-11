@@ -4,6 +4,7 @@
 
 import { Search } from "@/types/search";
 import { SearchCard } from "@/components/UI/SearchCard";
+import { CreateSearchButton } from "@/components/UI/CreateSearchButton";
 
 const MOCK_SEARCHES: Search[] = [
   {
@@ -54,7 +55,7 @@ export default function SearchPage() {
             <h2 className="text-2xl font-bold w-full text-gray-900 dark:text-white">
               Мои поиски
             </h2>
-            {/*<CreateSearchButton />*/}
+            <CreateSearchButton />
           </div>
           <div
             className="mt-6 flex flex-col gap-5 w-full max-w-full overflow-y-auto min-h-0 pb-4 scrollbar-hidden w-full">
@@ -70,7 +71,7 @@ export default function SearchPage() {
           <h3 className="text-xl font-bold text-gray-900 dark:text-white">
             У вас ещё нет ни одного поиска
           </h3>
-          {/*<CreateSearchButton />*/}
+          <CreateSearchButton />
         </div>
       )}
     </div>
