@@ -1,37 +1,56 @@
 import React from "react";
-// import { getUserResumes } from "@/actions/getUserResume";
-// import { getAllDictionaries } from "@/actions/dictionary-actions";
-// import { CreateSearchForm } from "@/components/UI/CreateSearchForm";
-// import { getAllAreasFlat } from "@/actions/area-actions";
-// import { getCurrencies } from "@/actions/getCurrencies";
+import { CreateSearchForm } from "@/components/UI/CreateSearchForm";
+import { areasMock } from "@/mock";
+
+const mockCurrencies = [
+  { "code": "AZN", "abbr": "₼", "name": "Манаты", "default": false, "rate": 0.0215, "in_use": false },
+  { "code": "BYR", "abbr": "Br", "name": "Белорусские рубли", "default": false, "rate": 0.037007, "in_use": false },
+  { "code": "EUR", "abbr": "€", "name": "Евро", "default": false, "rate": 0.010877, "in_use": true },
+  { "code": "GEL", "abbr": "₾", "name": "Грузинский лари", "default": false, "rate": 0.034702, "in_use": false },
+  { "code": "KGS", "abbr": "сом", "name": "Кыргызский сом", "default": false, "rate": 1.10601, "in_use": false },
+  { "code": "KZT", "abbr": "₸", "name": "Тенге", "default": false, "rate": 6.21732, "in_use": false },
+  { "code": "RUR", "abbr": "₽", "name": "Рубли", "default": true, "rate": 1, "in_use": true },
+  { "code": "UAH", "abbr": "₴", "name": "Гривны", "default": false, "rate": 0.554745, "in_use": false },
+  { "code": "USD", "abbr": "$", "name": "Доллары", "default": false, "rate": 0.012647, "in_use": true },
+  { "code": "UZS", "abbr": "so'm", "name": "Узбекский сум", "default": false, "rate": 153.48511, "in_use": false },
+];
+
+const mockSchedule = [
+  { "id": "fullDay", "name": "Полный день", "uid": "full_day" },
+  { "id": "shift", "name": "Сменный график", "uid": "shift" },
+  { "id": "flexible", "name": "Гибкий график", "uid": "flexible" },
+  { "id": "remote", "name": "Удаленная работа", "uid": "remote" },
+  { "id": "flyInFlyOut", "name": "Вахтовый метод", "uid": "fly_in_fly_out" },
+];
+
+const mockEmployment = [
+  { "id": "FULL", "name": "Полная", "duration": "PERMANENT" },
+  { "id": "PART", "name": "Частичная", "duration": "PERMANENT" },
+  { "id": "PROJECT", "name": "Проект", "duration": "TEMPORARY" },
+  { "id": "FLY_IN_FLY_OUT", "name": "Вахта", "duration": "PERMANENT" },
+  { "id": "SIDE_JOB", "name": "Подработка", "duration": "TEMPORARY" },
+];
+
+const mockExperience = [
+  { "id": "noExperience", "name": "Нет опыта" },
+  { "id": "between1And3", "name": "От 1 года до 3 лет" },
+  { "id": "between3And6", "name": "От 3 до 6 лет" },
+  { "id": "moreThan6", "name": "Более 6 лет" },
+];
 
 export default async function CreateSearchPage() {
-  // const resumes = await getUserResumes();
-  // const dictionaries = await getAllDictionaries();
-  // const areas = await getAllAreasFlat();
-  // const currencies = await getCurrencies();
-
-  // if (!dictionaries) return;
-
-  // const { schedule, experience, employment_form, work_schedule_by_days } =
-  //   dictionaries.data;
-  // console.log("dictionaries", dictionaries);
-  // console.log("employment", dictionaries.data.employment);
-  // console.log("employment_form", dictionaries.data.employment_form);
-  // console.log("resume_work_format", dictionaries.data.resume_work_format);
-  // console.log("work_format", dictionaries.data.work_format);
-
   return (
     <div className="w-full max-w-3xl">
-      <h2 className="font-bold text-2xl mb-6">Создание поиска</h2>
-      {/*<CreateSearchForm*/}
-      {/*  resumes={resumes?.data?.items || []}*/}
-      {/*  currencies={currencies}*/}
-      {/*  schedules={schedule || []}*/}
-      {/*  employment={employment_form}*/}
-      {/*  experiences={experience}*/}
-      {/*  areas={areas.data.map((area) => ({ label: area.name, value: area.id }))}*/}
-      {/*/>*/}
+      <h2 className="font-bold text-2xl mb-6 text-gray-900 dark:text-white">
+        Создание поиска
+      </h2>
+      <CreateSearchForm
+        currencies={mockCurrencies}
+        schedules={mockSchedule || []}
+        employment={mockEmployment}
+        experiences={mockExperience}
+        areas={areasMock.data.map((area) => ({ label: area.name, value: area.id }))}
+      />
     </div>
   );
 }

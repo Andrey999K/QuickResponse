@@ -10,7 +10,7 @@ import { AuthFormField } from "@/components/auth/AuthFormField";
 import { apiClient } from "@/lib/api-client";
 import { toast } from "react-toastify";
 import { log } from "@/utils/log";
-import { User } from "@/types/user";
+import { User } from "@/types/User";
 
 const loginSchema = z.object({
   email: z.email("Некорректный формат email").min(1, "Введите email"),

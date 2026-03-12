@@ -1,6 +1,6 @@
 import { Card, Tag } from "antd";
 import { ReactNode } from "react";
-import { Search } from "@/types/search";
+import { Search } from "@/types/Search";
 // import { getAllAreasFlat } from "@/actions/area-actions";
 // import { getAllDictionaries } from "@/actions/dictionary-actions";
 // import { StartSearchButton } from "@/components/UI/StartSearchButton";
@@ -75,10 +75,10 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
           <div>
             {(data.excludedCompanies.length &&
                 data.excludedCompanies.map((company, index) => (
-                  <>
+                  <div key={index}>
                     <a href={`https://hh.ru/employer/${company}`}>{company}</a>
                     {index !== data.excludedCompanies.length - 1 && ", "}
-                  </>
+                  </div>
                 ))) ||
               "Не добавлено"}
           </div>

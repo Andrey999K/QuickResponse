@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 
-import { User } from "@/types/user";
+import { User } from "@/types/User";
 import { apiClient } from "@/lib/api-client";
 
 const fetcher = () => apiClient.get<User>("/api/auth/me");
@@ -12,10 +12,11 @@ export const useCurrentUser = () => {
     "/api/auth/me",
     fetcher,
     {
-      onError: () => {}, // Игнорируем ошибки — пользователь просто не авторизован
+      onError: () => {
+      }, // Игнорируем ошибки — пользователь просто не авторизован
       revalidateOnFocus: false, // Не перезапрашивать при фокусе окна
       revalidateOnReconnect: true, // Перезапрашивать при восстановлении соединения
-    }
+    },
   );
 
   return { user: user ?? null, loading };

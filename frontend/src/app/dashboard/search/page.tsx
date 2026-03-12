@@ -2,7 +2,7 @@
 // import { getSearches } from "@/actions/search-actions";
 // import { getCurrentUser } from "@/actions/user-actions";
 
-import { Search } from "@/types/search";
+import { Search } from "@/types/Search";
 import { SearchCard } from "@/components/UI/SearchCard";
 import { CreateSearchButton } from "@/components/UI/CreateSearchButton";
 

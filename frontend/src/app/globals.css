@@ -53,8 +53,8 @@ html {
   }
 }
 
-body {
-  font-family: Roboto, sans-serif;
+body, h1, h2, h3, h4, h5, h6, p, span, div, input, button, select, textarea {
+  font-family: BlinkMacSystemFont, -apple-system, sans-serif !important;
 }
 
 .ant-card-body {
