@@ -1,6 +1,7 @@
 import { Card, Tag } from "antd";
 import { ReactNode } from "react";
 import { Search } from "@/types/Search";
+import { getAreaNamesByIds } from "@/utils/areas";
 // import { getAllAreasFlat } from "@/actions/area-actions";
 // import { getAllDictionaries } from "@/actions/dictionary-actions";
 // import { StartSearchButton } from "@/components/UI/StartSearchButton";
@@ -93,9 +94,8 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
         <Row label="Регион:">
           {data.area.length ? (
             <div className="flex gap-1 items-center">
-              {data.area.map((item) => (
-                <Tag key={item}>{item}</Tag>
-                // <Tag key={item}>{getValueById(regions.data, String(item))}</Tag>
+              {getAreaNamesByIds(data.area).map((name) => (
+                <Tag key={name}>{name}</Tag>
               ))}
             </div>
           ) : (
