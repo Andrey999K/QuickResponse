@@ -1,6 +1,6 @@
 import { Card, Tag } from "antd";
 import { ReactNode } from "react";
-import { Search } from "@/types/Search";
+import { ISearch } from "@/types/Search";
 import { getAreaNamesByIds } from "@/utils/areas";
 // import { getAllAreasFlat } from "@/actions/area-actions";
 // import { getAllDictionaries } from "@/actions/dictionary-actions";
@@ -25,10 +25,10 @@ const Row = ({ label, children }: { label: string; children: ReactNode }) => (
 );
 
 type SearchCardProps = {
-  data: Search;
+  data: ISearch;
 };
 
-export const SearchCard = async ({ data }: SearchCardProps) => {
+export const SearchCard = ({ data }: SearchCardProps) => {
   // const regions = await getAllAreasFlat();
   // const dictionaries = await getAllDictionaries();
   // const { schedule, experience, employment_form } = dictionaries.data;
@@ -44,11 +44,11 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
       title={
         <div className="flex items-center gap-3">
           <h3 className="text-gray-900 dark:text-white">{data.title}</h3>
-          {data.isActive ? (
-            <Tag color="green">Запущен</Tag>
-          ) : (
-            <Tag color="red">Остановлен</Tag>
-          )}
+          {/*{data.isActive ? (*/}
+          {/*  <Tag color="green">Запущен</Tag>*/}
+          {/*) : (*/}
+          {/*  <Tag color="red">Остановлен</Tag>*/}
+          {/*)}*/}
         </div>
       }
       // extra={
@@ -60,41 +60,41 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
       // }
     >
       <div>
-        <Row label="Найдено вакансий:">{data.countVacancies || 0}</Row>
+        <Row label="Найдено вакансий:">{data.count_vacancies || 0}</Row>
 
-        <Row label="Резюме:">
-          <a href={`https://hh.ru/resume/${data.resumeId}`} target="_blank">
-            Открыть
-          </a>
-        </Row>
+        {/*<Row label="Резюме:">*/}
+        {/*  <a href={`https://hh.ru/resume/${data.resumeId}`} target="_blank">*/}
+        {/*    Открыть*/}
+        {/*  </a>*/}
+        {/*</Row>*/}
 
-        <Row label="Ключевые слова:">{data.text || "Нет"}</Row>
+        <Row label="Ключевые слова:">{data.keywords || "Нет"}</Row>
 
-        <Row label="Исключенные слова:">{data.excludedText || "Нет"}</Row>
+        <Row label="Исключенные слова:">{data.excluded_text || "Нет"}</Row>
 
-        <Row label="Исключенные компании:">
-          <div>
-            {(data.excludedCompanies.length &&
-                data.excludedCompanies.map((company, index) => (
-                  <div key={index}>
-                    <a href={`https://hh.ru/employer/${company}`}>{company}</a>
-                    {index !== data.excludedCompanies.length - 1 && ", "}
-                  </div>
-                ))) ||
-              "Не добавлено"}
-          </div>
-        </Row>
+        {/*<Row label="Исключенные компании:">*/}
+        {/*  <div>*/}
+        {/*    {(data.excludedCompanies.length &&*/}
+        {/*        data.excludedCompanies.map((company, index) => (*/}
+        {/*          <div key={index}>*/}
+        {/*            <a href={`https://hh.ru/employer/${company}`}>{company}</a>*/}
+        {/*            {index !== data.excludedCompanies.length - 1 && ", "}*/}
+        {/*          </div>*/}
+        {/*        ))) ||*/}
+        {/*      "Не добавлено"}*/}
+        {/*  </div>*/}
+        {/*</Row>*/}
 
-        <Row label="Желаемая зарплата:">{data.salary || "Не добавлена"}</Row>
+        <Row label="Желаемая зарплата:">{data.salary ? `${data.salary} ${data.currency}` : "Не добавлена"}</Row>
 
         <Row label="Скрыть вакансии без зарплаты:">
-          {data.onlyWithSalary ? "Да" : "Нет"}
+          {data.only_with_salary ? "Да" : "Нет"}
         </Row>
 
         <Row label="Регион:">
           {data.area.length ? (
             <div className="flex gap-1 items-center">
-              {getAreaNamesByIds(data.area).map((name) => (
+              {getAreaNamesByIds(data.area.map(String)).map((name) => (
                 <Tag key={name}>{name}</Tag>
               ))}
             </div>
@@ -136,23 +136,25 @@ export const SearchCard = async ({ data }: SearchCardProps) => {
         </Row>
 
         <Row label="Сопроводительное письмо:">
-          <p className="truncate">{data.coverLetter || "Не добавлено"}</p>
+          <p className="truncate">{data.cover_letter || "Не добавлено"}</p>
         </Row>
 
         <Row label="Дата создания:">
-          <div>{data.createdAt}</div>
+          {/*<div>{data.createdAt}</div>*/}
+          {/*<div>{formatDateTime(data.created_at)}</div>*/}
+          <div>{data.created_at}</div>
           {/*<div>{convertDataTime(data.createdAt)}</div>*/}
         </Row>
       </div>
 
       <div className="mt-4 flex justify-end">
-        {data.isActive ? (
-          "Активен"
-          // <StopSearchButton userId={data.userId} searchId={data.id} />
-        ) : (
-          "Не активен"
-          // <StartSearchButton userId={data.userId} searchId={data.id} />
-        )}
+        {/*{data.isActive ? (*/}
+        {/*  "Активен"*/}
+        {/*  // <StopSearchButton userId={data.userId} searchId={data.id} />*/}
+        {/*) : (*/}
+        {/*  "Не активен"*/}
+        {/*  // <StartSearchButton userId={data.userId} searchId={data.id} />*/}
+        {/*)}*/}
       </div>
     </Card>
   );

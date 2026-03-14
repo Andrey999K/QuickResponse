@@ -1,18 +1,18 @@
-export type Search = {
-  id: string;
+export interface ISearch {
+  id: number;
+  user_id: number;
   title: string;
-  isActive: boolean;
-  userId: string;
-  countVacancies: number;
-  resumeId: string;
-  text: string;
-  excludedText: string;
-  excludedCompanies: string[];
+  keywords: string | null;
+  excluded_text: string | null;
   salary: number | null;
-  onlyWithSalary: boolean;
-  area: string[];
+  currency: string;
+  only_with_salary: boolean;
+  area: number[];
   schedule: string[];
+  employment: string[];
   experience: string[];
-  coverLetter: string;
-  createdAt: string;
-};
+  cover_letter: string | null;
+  count_vacancies: number;
+  created_at: string;
+  updated_at: string;
+}
