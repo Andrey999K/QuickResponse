@@ -176,7 +176,7 @@ export const CreateSearchForm = ({
       {/*  </Select>*/}
       {/*</Form.Item>*/}
 
-      <Form.Item label="Ключевые слова" name="text" className="font-bold">
+      <Form.Item label="Ключевые слова" name="keywords" className="font-bold">
         <Input
           placeholder="Ключевые слова, через запятую"
           allowClear

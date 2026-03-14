@@ -11,6 +11,7 @@ import { testConnection } from "@/config/db/connection";
 import { logger } from "@/utils/log";
 import { authRoutes } from "@/modules/auth/auth.routes";
 import { userRoutes } from "@/modules/users/user.routes";
+import { initDatabase } from "@/config/db/initDb";
 
 const app = express();
 
@@ -31,9 +32,9 @@ async function main() {
     await testConnection();
 
     // Инициализируем базу данных (создаём таблицы и заполняем данными)
-    // if (env.NODE_ENV === "development") {
-    //   await initDatabase();
-    // }
+    if (env.NODE_ENV === "development") {
+      await initDatabase();
+    }
 
     app.get("/", (_req: Request, res: Response) => {
       res.send("Hello World!");

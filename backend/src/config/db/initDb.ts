@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import "colors";
 import { pool } from "./connection";
 import { logger } from "@/utils/log";
+import { seedUsers, seedSearches } from "./seeds";
 
 export async function initDatabase() {
   try {
@@ -26,8 +27,9 @@ export async function initDatabase() {
 async function createTables() {
   const createTablesSQL = `
     -- Удаляем таблицы если они существуют (для пересоздания)
+    DROP TABLE IF EXISTS searches CASCADE;
     DROP TABLE IF EXISTS users CASCADE;
-    
+
     -- Создаем таблицу users
     CREATE TABLE users (
       id SERIAL PRIMARY KEY,
@@ -37,9 +39,31 @@ async function createTables() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
-    
+
+    -- Создаем таблицу searches
+    CREATE TABLE searches (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title VARCHAR(255) NOT NULL,
+      keywords TEXT,
+      excluded_text TEXT,
+      salary INTEGER,
+      currency VARCHAR(10) DEFAULT 'RUR',
+      only_with_salary BOOLEAN DEFAULT FALSE,
+      area INTEGER[] DEFAULT '{}',
+      schedule VARCHAR(50)[] DEFAULT '{}',
+      employment VARCHAR(50)[] DEFAULT '{}',
+      experience VARCHAR(50)[] DEFAULT '{}',
+      cover_letter TEXT,
+      count_vacancies INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
     -- Создаем индексы
     CREATE INDEX idx_users_email ON users(email);
+    CREATE INDEX idx_searches_user_id ON searches(user_id);
+    CREATE INDEX idx_searches_title ON searches(title);
   `;
 
   await pool.query(createTablesSQL);
@@ -59,23 +83,9 @@ async function createTables() {
 async function seedDatabase() {
   const saltRounds = 10;
 
-  const users = [
-    { email: "alice@example.com", username: "alice123" },
-    { email: "bob@example.com", username: "bob456" },
-    { email: "charlie@example.com", username: "charlie789" },
-    { email: "diana@example.com", username: "diana101" },
-    { email: "evan@example.com", username: "evan202" },
-  ];
+  const userIds = await seedUsers(saltRounds);
+  await seedSearches(userIds["test@ma.co"]);
 
-  for (const user of users) {
-    const hashedPassword = await bcrypt.hash("12345", saltRounds);
-    await pool.query(
-      `INSERT INTO users (email, username, password) 
-       VALUES ($1, $2, $3) 
-       ON CONFLICT (email) DO NOTHING`,
-      [user.email, user.username, hashedPassword]
-    );
-  }
   // console.log("✅ Mock data inserted successfully");
 }
 
