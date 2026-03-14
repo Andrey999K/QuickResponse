@@ -1,8 +1,7 @@
-import bcrypt from "bcrypt";
 import "colors";
 import { pool } from "./connection";
 import { logger } from "@/utils/log";
-import { seedUsers, seedSearches } from "./seeds";
+import { seedSearches, seedUsers } from "./seeds";
 
 export async function initDatabase() {
   try {
