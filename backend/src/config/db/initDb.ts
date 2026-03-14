@@ -84,7 +84,10 @@ async function seedDatabase() {
   const saltRounds = 10;
 
   const userIds = await seedUsers(saltRounds);
-  await seedSearches(userIds["test@ma.co"]);
+  const testUserId = userIds["test@ma.co"];
+  if (testUserId) {
+    await seedSearches(testUserId);
+  }
 
   // console.log("✅ Mock data inserted successfully");
 }
