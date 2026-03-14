@@ -3,7 +3,7 @@
     /* Language and Environment */
     "target": "ES2022",                                  /* Set the JavaScript language version for emitted JavaScript */
     "lib": ["ES2022"],                                   /* Specify library files to be included */
-    "module": "Node16",                                  /* Specify what module code is generated */
+    "module": "ES2022",                                  /* Specify what module code is generated */
     "moduleResolution": "bundler",                        /* Specify how TypeScript resolves modules */
     
     /* Emit */
