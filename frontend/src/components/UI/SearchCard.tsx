@@ -95,7 +95,7 @@ export const SearchCard = ({ data }: SearchCardProps) => {
           {data.area.length ? (
             <div className="flex gap-1 items-center overflow-x-auto scrollbar-hidden">
               {getAreaNamesByIds(data.area.map(String)).map((name) => (
-                <Tag key={name} className="shrink-0">{name}</Tag>
+                <Tag key={name} className="shrink-0 !bg-gray-200 dark:!bg-gray-600">{name}</Tag>
               ))}
             </div>
           ) : (
@@ -106,10 +106,10 @@ export const SearchCard = ({ data }: SearchCardProps) => {
         <Row label="График работы:">
           {data.schedule.length
             ? (
-              <div className="flex gap-1 items-center">
+              <div className="flex gap-1 items-center overflow-x-auto scrollbar-hidden">
                 {
                   data.schedule.map((item, index) => (
-                    <Tag key={`${data.id + item + index}`}>
+                    <Tag key={`${data.id + item + index}`} className="shrink-0 !bg-gray-200 dark:!bg-gray-600">
                       {item}
                       {/*{getValueById(schedule, item)}*/}
                     </Tag>
@@ -122,10 +122,10 @@ export const SearchCard = ({ data }: SearchCardProps) => {
         <Row label="Опыт работы:">
           {data.experience.length
             ? (
-              <div className="flex gap-1 items-center">
+              <div className="flex gap-1 items-center overflow-x-auto scrollbar-hidden">
                 {
                   data.experience.map((item, index) => (
-                    <Tag key={`${data.id + item + index}`}>
+                    <Tag key={`${data.id + item + index}`} className="shrink-0 !bg-gray-200 dark:!bg-gray-600">
                       {item}
                       {/*{getValueById(experience, item)}*/}
                     </Tag>
