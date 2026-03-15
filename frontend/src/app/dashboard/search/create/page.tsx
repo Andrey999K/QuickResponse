@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CreateSearchForm } from "@/components/UI/CreateSearchForm";
+import { SearchForm } from "@/components/UI/SearchForm";
 import { currencies } from "@/utils/currencies";
 import { employments, experiences, schedules } from "@/utils/dictionaries";
 import { areasMock } from "@/utils/areas";
@@ -16,12 +16,13 @@ export default function CreateSearchPage() {
       </div>
       <div className="mt-6 flex flex-col gap-5 w-full max-w-full overflow-y-auto min-h-0 pb-4 scrollbar-hidden">
         <div className="max-w-3xl">
-          <CreateSearchForm
+          <SearchForm
             currencies={currencies}
             schedules={schedules}
             employment={employments}
             experiences={experiences}
             areas={areasMock.data.map((area) => ({ label: area.name, value: area.id }))}
+            mode="create"
           />
         </div>
       </div>
