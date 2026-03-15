@@ -123,3 +123,29 @@ export const deleteSearch = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({ message: "Error while deleting search" });
   }
 };
+
+export const toggleSearchStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    if (typeof is_active !== "boolean") {
+      return res.status(400).json({ message: "is_active must be a boolean" });
+    }
+
+    const updatedSearch = await searchService.toggleSearchStatus(
+      Number(id),
+      req.userId!,
+      is_active,
+    );
+
+    if (!updatedSearch) {
+      return res.status(404).json({ message: "Search not found" });
+    }
+
+    return res.json(updatedSearch);
+  } catch (error) {
+    logger.error("Error toggling search status: " + error);
+    return res.status(500).json({ message: "Error while toggling search status" });
+  }
+};
