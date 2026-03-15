@@ -2,10 +2,10 @@
 
 import { SearchCard } from "@/components/UI/SearchCard";
 import { CreateSearchButton } from "@/components/UI/CreateSearchButton";
-import { useSearches } from "@/hooks/useSearches";
 import { PageLoader } from "@/components/common/PageLoader";
 import { apiClient } from "@/lib/api-client";
 import { message } from "antd";
+import { useSearches } from "@/hooks/useSearchApi";
 
 export default function SearchPage() {
   const { searches, isLoading, mutate } = useSearches();

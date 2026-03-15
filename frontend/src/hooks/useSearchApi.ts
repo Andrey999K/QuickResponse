@@ -66,8 +66,8 @@ export const useToggleSearchStatus = () => {
   const toggleSearchStatus = async (searchId: number, isActive: boolean) => {
     try {
       await apiClient.patch(`/api/search/${searchId}/toggle-status`, { is_active: isActive });
-      // Инвалидация кэша поисков
-      await globalMutate(searchKeys.list());
+      // Инвалидация кэша поисков — используем тот же ключ, что и в useSearches
+      await globalMutate("/api/search");
       return true;
     } catch (error) {
       console.error("Toggle search status error:", error);
@@ -86,7 +86,7 @@ export const useDeleteSearch = () => {
     try {
       await apiClient.delete(`/api/search/${searchId}`);
       // Инвалидация кэша поисков
-      await globalMutate(searchKeys.list());
+      await globalMutate("/api/search");
       return true;
     } catch (error) {
       console.error("Delete search error:", error);
@@ -105,7 +105,7 @@ export const useCreateSearch = () => {
     try {
       const response = await apiClient.post<ISearch>("/api/search", data);
       // Инвалидация кэша поисков
-      await globalMutate(searchKeys.list());
+      await globalMutate("/api/search");
       return response;
     } catch (error) {
       console.error("Create search error:", error);
@@ -124,8 +124,8 @@ export const useUpdateSearch = () => {
     try {
       const response = await apiClient.patch<ISearch>(`/api/search/${id}`, data);
       // Инвалидация кэша конкретного поиска и списка
-      await globalMutate(searchKeys.detail(id));
-      await globalMutate(searchKeys.list());
+      await globalMutate(`/api/search/${id}`);
+      await globalMutate("/api/search");
       return response;
     } catch (error) {
       console.error("Update search error:", error);

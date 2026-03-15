@@ -31,6 +31,7 @@ export const SearchCard = ({ data, onDelete }: SearchCardProps) => {
   // const getValueById = (mass: { id: string; name: string }[], id: string) => {
   //   return mass.find((item: { id: string }) => item.id === id)?.name;
   // };
+  console.log("data", data);
 
   return (
     <Card

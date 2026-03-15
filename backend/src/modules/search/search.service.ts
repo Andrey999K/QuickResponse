@@ -8,7 +8,7 @@ export class SearchService {
         text: `
           SELECT id, user_id, title, keywords, excluded_text, salary, 
                  currency, only_with_salary, area, schedule, employment, 
-                 experience, cover_letter, count_vacancies, created_at, updated_at
+                 experience, cover_letter, count_vacancies, is_active, created_at, updated_at
           FROM searches
           WHERE user_id = $1
           ORDER BY created_at DESC
@@ -29,7 +29,7 @@ export class SearchService {
         text: `
           SELECT id, user_id, title, keywords, excluded_text, salary, 
                  currency, only_with_salary, area, schedule, employment, 
-                 experience, cover_letter, count_vacancies, created_at, updated_at
+                 experience, cover_letter, count_vacancies, is_active, created_at, updated_at
           FROM searches
           WHERE id = $1 AND user_id = $2
         `,
@@ -55,7 +55,7 @@ export class SearchService {
     schedule: string[],
     employment: string[],
     experience: string[],
-    cover_letter: string | null
+    cover_letter: string | null,
   ): Promise<Search> {
     try {
       const query = {
@@ -92,7 +92,7 @@ export class SearchService {
   async updateSearch(
     id: number,
     userId: number,
-    updates: Partial<Search>
+    updates: Partial<Search>,
   ): Promise<Search | null> {
     try {
       const allowedFields = [

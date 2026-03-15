@@ -6,9 +6,9 @@ import { SearchForm } from "@/components/UI/SearchForm";
 import { currencies } from "@/utils/currencies";
 import { employments, experiences, schedules } from "@/utils/dictionaries";
 import { areasMock } from "@/utils/areas";
-import { useSearch } from "@/hooks/useSearch";
 import { PageLoader } from "@/components/common/PageLoader";
 import { message } from "antd";
+import { useSearch } from "@/hooks/useSearchApi";
 
 export default function EditSearchPage() {
   const params = useParams();
