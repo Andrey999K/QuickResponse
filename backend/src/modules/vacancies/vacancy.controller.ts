@@ -36,6 +36,25 @@ export const getNewVacancies = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * Получить вакансию по ID
+ */
+export const getVacancyById = async (req: AuthRequest, res: Response) => {
+  try {
+    const { vacancyId } = req.params;
+
+    const vacancy = await vacancyService.getVacancyById(Number(vacancyId));
+    if (!vacancy) {
+      return res.status(404).json({ message: "Vacancy not found" });
+    }
+
+    return res.json(vacancy);
+  } catch (error) {
+    logger.error("Error fetching vacancy: " + error);
+    return res.status(500).json({ message: "Error while fetching vacancy" });
+  }
+};
+
+/**
  * Пометить вакансию как просмотренную
  */
 export const markVacancyAsRead = async (req: AuthRequest, res: Response) => {

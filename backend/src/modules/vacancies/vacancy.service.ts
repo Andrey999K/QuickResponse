@@ -51,6 +51,29 @@ export class VacancyService {
   }
 
   /**
+   * Получить вакансию по ID
+   */
+  async getVacancyById(vacancyId: number): Promise<Vacancy | null> {
+    try {
+      const query = {
+        text: `
+          SELECT id, search_id, hh_id, title, company, salary,
+                 currency, url, area, schedule, employment, experience,
+                 description, is_new, created_at
+          FROM vacancies
+          WHERE id = $1
+        `,
+        values: [vacancyId],
+      };
+      const result = await pool.query(query);
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error("Error fetching vacancy:", error);
+      throw new Error("Error while fetching vacancy");
+    }
+  }
+
+  /**
    * Создать новую вакансию
    */
   async createVacancy(
