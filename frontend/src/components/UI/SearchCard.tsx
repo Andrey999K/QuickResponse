@@ -3,12 +3,12 @@ import { ReactNode } from "react";
 import { ISearch } from "@/types/Search";
 import { getAreaNamesByIds } from "@/utils/areaNames";
 import { formatDateTime } from "@/utils/formatDateTime";
-import { getScheduleNamesByIds, getExperienceNamesByIds } from "@/utils/dictionaries";
+import { getExperienceNamesByIds, getScheduleNamesByIds } from "@/utils/dictionaries";
 // import { getAllAreasFlat } from "@/actions/area-actions";
 // import { getAllDictionaries } from "@/actions/dictionary-actions";
 // import { StartSearchButton } from "@/components/UI/StartSearchButton";
 // import { StopSearchButton } from "@/components/UI/StopSearchButton";
-// import { MenuSearch } from "@/components/UI/MenuSearch";
+import { MenuSearch } from "@/components/UI/MenuSearch";
 // import { convertDataTime } from "@/utils/function/convertDataTime";
 // import { SearchType } from "@/types/Search";
 
@@ -53,13 +53,13 @@ export const SearchCard = ({ data }: SearchCardProps) => {
           {/*)}*/}
         </div>
       }
-      // extra={
-      //   <MenuSearch
-      //     userId={data.userId}
-      //     searchId={data.id}
-      //     title={data.title}
-      //   />
-      // }
+      extra={
+        <MenuSearch
+          userId={data.user_id}
+          searchId={data.id}
+          title={data.title}
+        />
+      }
     >
       <div>
         <Row label="Найдено вакансий:">{data.count_vacancies || 0}</Row>
