@@ -1,8 +1,8 @@
 "use client";
 
 import { Button, message } from "antd";
-import { apiClient } from "@/lib/api-client";
 import { PauseCircleOutlined } from "@ant-design/icons";
+import { useToggleSearchStatus } from "@/hooks/useSearchApi";
 
 type StopSearchButtonProps = {
   searchId: number;
@@ -10,14 +10,15 @@ type StopSearchButtonProps = {
 };
 
 export const StopSearchButton = ({ searchId, onSuccess }: StopSearchButtonProps) => {
+  const { toggleSearchStatus } = useToggleSearchStatus();
+
   const handleStop = async () => {
-    try {
-      await apiClient.patch(`/api/search/${searchId}/toggle-status`, { is_active: false });
+    const success = await toggleSearchStatus(searchId, false);
+    if (success) {
       message.success("Поиск остановлен");
       onSuccess?.();
-    } catch (error) {
+    } else {
       message.error("Ошибка при остановке поиска");
-      console.error("Stop search error:", error);
     }
   };
 

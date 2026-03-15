@@ -1,8 +1,8 @@
 "use client";
 
 import { Button, message } from "antd";
-import { apiClient } from "@/lib/api-client";
 import { PlayCircleOutlined } from "@ant-design/icons";
+import { useToggleSearchStatus } from "@/hooks/useSearchApi";
 
 type StartSearchButtonProps = {
   searchId: number;
@@ -10,14 +10,15 @@ type StartSearchButtonProps = {
 };
 
 export const StartSearchButton = ({ searchId, onSuccess }: StartSearchButtonProps) => {
+  const { toggleSearchStatus } = useToggleSearchStatus();
+
   const handleStart = async () => {
-    try {
-      await apiClient.patch(`/api/search/${searchId}/toggle-status`, { is_active: true });
+    const success = await toggleSearchStatus(searchId, true);
+    if (success) {
       message.success("Поиск запущен");
       onSuccess?.();
-    } catch (error) {
+    } else {
       message.error("Ошибка при запуске поиска");
-      console.error("Start search error:", error);
     }
   };
 

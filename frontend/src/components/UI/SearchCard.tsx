@@ -140,9 +140,9 @@ export const SearchCard = ({ data, onDelete }: SearchCardProps) => {
 
       <div className="mt-4 flex justify-end">
         {data.is_active ? (
-          <StopSearchButton searchId={data.id} onSuccess={() => {}} />
+          <StopSearchButton searchId={data.id} />
         ) : (
-          <StartSearchButton searchId={data.id} onSuccess={() => {}} />
+          <StartSearchButton searchId={data.id} />
         )}
       </div>
     </Card>
