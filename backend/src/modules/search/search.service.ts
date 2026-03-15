@@ -161,4 +161,23 @@ export class SearchService {
       throw new Error("Error while deleting search");
     }
   }
+
+  async toggleSearchStatus(id: number, userId: number, isActive: boolean): Promise<Search | null> {
+    try {
+      const query = {
+        text: `
+          UPDATE searches
+          SET is_active = $1, updated_at = CURRENT_TIMESTAMP
+          WHERE id = $2 AND user_id = $3
+          RETURNING *
+        `,
+        values: [isActive, id, userId],
+      };
+      const result = await pool.query(query);
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error("Error toggling search status:", error);
+      throw new Error("Error while toggling search status");
+    }
+  }
 }
