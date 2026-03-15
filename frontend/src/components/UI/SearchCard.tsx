@@ -4,17 +4,9 @@ import { ISearch } from "@/types/Search";
 import { getAreaNamesByIds } from "@/utils/areaNames";
 import { formatDateTime } from "@/utils/formatDateTime";
 import { getExperienceNamesByIds, getScheduleNamesByIds } from "@/utils/dictionaries";
-// import { getAllAreasFlat } from "@/actions/area-actions";
-// import { getAllDictionaries } from "@/actions/dictionary-actions";
-// import { StartSearchButton } from "@/components/UI/StartSearchButton";
-// import { StopSearchButton } from "@/components/UI/StopSearchButton";
+import { StartSearchButton } from "@/components/UI/StartSearchButton";
+import { StopSearchButton } from "@/components/UI/StopSearchButton";
 import { MenuSearch } from "@/components/UI/MenuSearch";
-// import { convertDataTime } from "@/utils/function/convertDataTime";
-// import { SearchType } from "@/types/Search";
-
-// type SearchCardProps = {
-//   data: SearchType;
-// };
 
 const Row = ({ label, children }: { label: string; children: ReactNode }) => (
   <div
@@ -47,11 +39,11 @@ export const SearchCard = ({ data, onDelete }: SearchCardProps) => {
       title={
         <div className="flex items-center gap-3">
           <h3 className="text-gray-900 dark:text-white">{data.title}</h3>
-          {/*{data.isActive ? (*/}
-          {/*  <Tag color="green">Запущен</Tag>*/}
-          {/*) : (*/}
-          {/*  <Tag color="red">Остановлен</Tag>*/}
-          {/*)}*/}
+          {data.is_active ? (
+            <Tag color="green">Запущен</Tag>
+          ) : (
+            <Tag color="red">Остановлен</Tag>
+          )}
         </div>
       }
       extra={
@@ -147,13 +139,11 @@ export const SearchCard = ({ data, onDelete }: SearchCardProps) => {
       </div>
 
       <div className="mt-4 flex justify-end">
-        {/*{data.isActive ? (*/}
-        {/*  "Активен"*/}
-        {/*  // <StopSearchButton userId={data.userId} searchId={data.id} />*/}
-        {/*) : (*/}
-        {/*  "Не активен"*/}
-        {/*  // <StartSearchButton userId={data.userId} searchId={data.id} />*/}
-        {/*)}*/}
+        {data.is_active ? (
+          <StopSearchButton searchId={data.id} onSuccess={() => {}} />
+        ) : (
+          <StartSearchButton searchId={data.id} onSuccess={() => {}} />
+        )}
       </div>
     </Card>
   );
