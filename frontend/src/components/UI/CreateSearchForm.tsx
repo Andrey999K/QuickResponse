@@ -1,27 +1,16 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { Button, Checkbox, Form, Input, Select, SelectProps, Space } from "antd";
-// import { Resume } from "@/types/Resume";
-// import { Schedule } from "@/types/Schedule";
-// import { getCurrentUser } from "@/actions/user-actions";
-// import { Currency } from "@/types/Currency";
-// import { Employment.ts } from "@/types/Employment.ts";
-// import { getVacanciesForResumeNumber } from "@/actions/vacancy-actions";
-// import { SearchFormData } from "@/types/Search";
+import React, { useState } from "react";
+import { Button, Checkbox, Form, Input, Select, SelectProps, Space, message } from "antd";
 import { useRouter } from "next/navigation";
 import { Currency } from "@/types/Currency";
 import { Schedule } from "@/types/Schedule";
 import { Employment } from "@/types/Employment";
-// import { createSearch } from "@/actions/search-actions";
+import { apiClient } from "@/lib/api-client";
 
-const { Option } = Select;
 const { TextArea } = Input;
 
-type OptionType = SelectProps["options"];
-
 type CreateSearchFormProps = {
-  // resumes: Resume[];
   currencies: Currency[];
   schedules: Schedule[];
   employment: Employment[];
@@ -36,53 +25,17 @@ type CreateSearchFormProps = {
 };
 
 export const CreateSearchForm = ({
-                                   // resumes,
-                                   currencies,
-                                   schedules,
-                                   employment,
-                                   experiences,
-                                   areas,
-                                 }: CreateSearchFormProps) => {
-// export const CreateSearchForm = ({}) => {
+  currencies,
+  schedules,
+  employment,
+  experiences,
+  areas,
+}: CreateSearchFormProps) => {
   const [form] = Form.useForm();
-  const [userId, setUserId] = useState<null | number>(null);
-  // const allFormValues: SearchFormData = Form.useWatch(undefined, form);
-  const [countVacancies, setCountVacancies] = useState<null | number>(null);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const coverLetterLength = 1000;
-
-  // Обработчик отправки формы
-  // const onFinish = (values: SearchFormData) => {
-  //   const area = values.area;
-  //   const formData = {
-  //     ...values,
-  //     salary: Number(values.salary),
-  //     area: area ? area.map(Number) : [],
-  //   };
-  //   if (userId) {
-  //     const data = { ...formData, userId, countVacancies: countVacancies || 0 };
-  //     console.log("formData", data);
-  //     createSearch(data).then((res) => {
-  //       if (res.id) {
-  //         router.push("/dashboard/search");
-  //       }
-  //     });
-  //   }
-  //
-  //   // Здесь можно добавить логику обработки данных
-  //   // Например, отправку на сервер
-  // };
-
-  // Обработчик сброса формы
-  const onReset = () => {
-    form.resetFields();
-  };
-
-  const handleChange = (value: string[]) => {
-    console.log(`selected ${value}`);
-  };
 
   const filterOptionRegions: SelectProps["filterOption"] = (
     input,
@@ -95,36 +48,47 @@ export const CreateSearchForm = ({
     return labelString.toLowerCase().includes(input.toLowerCase());
   };
 
-  // useEffect(() => {
-  //   getCurrentUser().then((res) => {
-  //     if (res?.userInfo?.id) {
-  //       console.log("res", res);
-  //       setUserId(Number(res?.userInfo.id));
-  //     }
-  //   });
-  // }, []);
+  const onFinish = async (values: Record<string, unknown>) => {
+    setIsLoading(true);
 
-  // useEffect(() => {
-  //   if (debounceTimer.current) {
-  //     clearTimeout(debounceTimer.current);
-  //   }
-  //
-  //   debounceTimer.current = setTimeout(() => {
-  //     if (allFormValues?.resumeId) {
-  //       getVacanciesForResumeNumber(allFormValues).then((res) => {
-  //         if (res.data || res.data === 0) {
-  //           setCountVacancies(res.data);
-  //         }
-  //       });
-  //     }
-  //   }, 500);
-  // }, [allFormValues]);
+    try {
+      const formData = {
+        title: values.title as string,
+        keywords: (values.keywords as string) || null,
+        excluded_text: (values.excludedText as string) || null,
+        salary: values.salary ? Number(values.salary) : null,
+        currency: (values.currency as "RUR" | "USD" | "EUR") || "RUR",
+        only_with_salary: Boolean(values.onlyWithSalary),
+        area: (values.area as string[])?.map(Number) || [],
+        schedule: (values.schedule as string[]) || [],
+        employment: (values.employment as string[]) || [],
+        experience: (values.experience as string[]) || [],
+        cover_letter: (values.coverLetter as string) || null,
+      };
+
+      const result = await apiClient.post("/api/search", formData);
+
+      if (result) {
+        message.success("Поиск успешно создан!");
+        router.push("/dashboard/search");
+      }
+    } catch (error) {
+      message.error("Ошибка при создании поиска");
+      console.error("Create search error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onReset = () => {
+    form.resetFields();
+  };
 
   return (
     <Form
       form={form}
       layout="vertical"
-      // onFinish={onFinish}
+      onFinish={onFinish}
       autoComplete="off"
       initialValues={{ currency: "RUR" }}
     >
@@ -143,38 +107,6 @@ export const CreateSearchForm = ({
           className="font-normal"
         />
       </Form.Item>
-
-      {/*<Form.Item*/}
-      {/*  label="Резюме"*/}
-      {/*  name="resumeId"*/}
-      {/*  rules={[{ required: true, message: "Пожалуйста, выберите опцию!" }]}*/}
-      {/*  className="font-bold"*/}
-      {/*>*/}
-      {/*  <Select*/}
-      {/*    placeholder="Выберите резюме"*/}
-      {/*    className="font-normal"*/}
-      {/*    allowClear*/}
-      {/*  >*/}
-      {/*    /!*{resumes.map((resume) => (*!/*/}
-      {/*    /!*  <Option key={resume.id} value={resume.id} className="!z-10">*!/*/}
-      {/*    /!*    <div className="flex !flex items-center justify-between">*!/*/}
-      {/*    /!*      <div className="flex gap-1 items-center">*!/*/}
-      {/*    /!*        <File size={16} />*!/*/}
-      {/*    /!*        <span>{resume.title}</span>*!/*/}
-      {/*    /!*      </div>*!/*/}
-      {/*    /!*      <a*!/*/}
-      {/*    /!*        href={resume.alternate_url}*!/*/}
-      {/*    /!*        className="!z-20"*!/*/}
-      {/*    /!*        onClick={(event) => event.stopPropagation()}*!/*/}
-      {/*    /!*        target="_blank"*!/*/}
-      {/*    /!*      >*!/*/}
-      {/*    /!*        <ExternalLink className="text-primary-400" size={16} />*!/*/}
-      {/*    /!*      </a>*!/*/}
-      {/*    /!*    </div>*!/*/}
-      {/*    /!*  </Option>*!/*/}
-      {/*    /!*))}*!/*/}
-      {/*  </Select>*/}
-      {/*</Form.Item>*/}
 
       <Form.Item label="Ключевые слова" name="keywords" className="font-bold">
         <Input
@@ -322,15 +254,12 @@ export const CreateSearchForm = ({
 
       <Form.Item>
         <Space>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={isLoading}>
             Создать
           </Button>
-          <Button htmlType="button" onClick={onReset}>
+          <Button htmlType="button" onClick={onReset} disabled={isLoading}>
             Сбросить
           </Button>
-          {(countVacancies || countVacancies === 0) && (
-            <div>Найдено {countVacancies} вакансий</div>
-          )}
         </Space>
       </Form.Item>
     </Form>

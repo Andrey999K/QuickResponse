@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { CreateSearchForm } from "@/components/UI/CreateSearchForm";
 import { areasMock } from "@/mock";
@@ -38,19 +40,27 @@ const mockExperience = [
   { "id": "moreThan6", "name": "Более 6 лет" },
 ];
 
-export default async function CreateSearchPage() {
+export default function CreateSearchPage() {
   return (
-    <div className="w-full max-w-3xl">
-      <h2 className="font-bold text-2xl mb-6 text-gray-900 dark:text-white">
-        Создание поиска
-      </h2>
-      <CreateSearchForm
-        currencies={mockCurrencies}
-        schedules={mockSchedule || []}
-        employment={mockEmployment}
-        experiences={mockExperience}
-        areas={areasMock.data.map((area) => ({ label: area.name, value: area.id }))}
-      />
+    <div className="flex flex-col h-full max-w-full w-full">
+      {/* Заголовок — фиксированный */}
+      <div className="shrink-0">
+        <h2 className="font-bold text-2xl text-gray-900 dark:text-white">
+          Создание поиска
+        </h2>
+      </div>
+      {/* Форма — прокручиваемая */}
+      <div className="mt-6 flex flex-col gap-5 w-full max-w-full overflow-y-auto min-h-0 pb-4 scrollbar-hidden">
+        <div className="max-w-3xl">
+          <CreateSearchForm
+            currencies={mockCurrencies}
+            schedules={mockSchedule || []}
+            employment={mockEmployment}
+            experiences={mockExperience}
+            areas={areasMock.data.map((area) => ({ label: area.name, value: area.id }))}
+          />
+        </div>
+      </div>
     </div>
   );
 }
