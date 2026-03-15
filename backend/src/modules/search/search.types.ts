@@ -14,6 +14,7 @@ export interface Search {
   cover_letter: string | null;
   count_vacancies: number;
   is_active: boolean;
+  last_checked_at: string | null;
   created_at: string;
   updated_at: string;
 }
