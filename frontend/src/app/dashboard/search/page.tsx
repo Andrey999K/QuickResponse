@@ -4,9 +4,23 @@ import { SearchCard } from "@/components/UI/SearchCard";
 import { CreateSearchButton } from "@/components/UI/CreateSearchButton";
 import { useSearches } from "@/hooks/useSearches";
 import { PageLoader } from "@/components/common/PageLoader";
+import { apiClient } from "@/lib/api-client";
+import { message } from "antd";
 
 export default function SearchPage() {
-  const { searches, isLoading } = useSearches();
+  const { searches, isLoading, mutate } = useSearches();
+
+  const handleDelete = async (searchId: number) => {
+    try {
+      await apiClient.delete(`/api/search/${searchId}`);
+      message.success("Поиск успешно удалён");
+      // Ревайлидация списка поисков
+      mutate();
+    } catch (error) {
+      message.error("Ошибка при удалении поиска");
+      console.error("Delete search error:", error);
+    }
+  };
 
   if (isLoading) {
     return <PageLoader />;
@@ -27,7 +41,7 @@ export default function SearchPage() {
             className="mt-6 flex flex-col gap-5 w-full max-w-full overflow-y-auto min-h-0 pb-4 scrollbar-hidden w-full">
             <div className="max-w-screen-lg flex flex-col gap-4">
               {searches.map((search) => (
-                <SearchCard key={search.id} data={search} />
+                <SearchCard key={search.id} data={search} onDelete={handleDelete} />
               ))}
             </div>
           </div>

@@ -28,9 +28,10 @@ const Row = ({ label, children }: { label: string; children: ReactNode }) => (
 
 type SearchCardProps = {
   data: ISearch;
+  onDelete: (searchId: number) => void;
 };
 
-export const SearchCard = ({ data }: SearchCardProps) => {
+export const SearchCard = ({ data, onDelete }: SearchCardProps) => {
   // const regions = await getAllAreasFlat();
   // const dictionaries = await getAllDictionaries();
   // const { schedule, experience, employment_form } = dictionaries.data;
@@ -58,6 +59,7 @@ export const SearchCard = ({ data }: SearchCardProps) => {
           userId={data.user_id}
           searchId={data.id}
           title={data.title}
+          onDelete={onDelete}
         />
       }
     >

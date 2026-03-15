@@ -8,7 +8,7 @@ import { apiClient } from "@/lib/api-client";
 const fetcher = () => apiClient.get<ISearch[]>("/api/search");
 
 export const useSearches = () => {
-  const { data: searches, isLoading, error } = useSWR(
+  const { data: searches, isLoading, error, mutate } = useSWR(
     "/api/search",
     fetcher,
     {
@@ -19,5 +19,5 @@ export const useSearches = () => {
     },
   );
 
-  return { searches: searches ?? [], isLoading, error };
+  return { searches: searches ?? [], isLoading, error, mutate };
 };
