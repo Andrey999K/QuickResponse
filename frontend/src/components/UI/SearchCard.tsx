@@ -2,6 +2,7 @@ import { Card, Tag } from "antd";
 import { ReactNode } from "react";
 import { ISearch } from "@/types/Search";
 import { getAreaNamesByIds } from "@/utils/areas";
+import { formatDateTime } from "@/utils/formatDateTime";
 // import { getAllAreasFlat } from "@/actions/area-actions";
 // import { getAllDictionaries } from "@/actions/dictionary-actions";
 // import { StartSearchButton } from "@/components/UI/StartSearchButton";
@@ -140,10 +141,7 @@ export const SearchCard = ({ data }: SearchCardProps) => {
         </Row>
 
         <Row label="Дата создания:">
-          {/*<div>{data.createdAt}</div>*/}
-          {/*<div>{formatDateTime(data.created_at)}</div>*/}
-          <div>{data.created_at}</div>
-          {/*<div>{convertDataTime(data.createdAt)}</div>*/}
+          <div>{formatDateTime(data.created_at)}</div>
         </Row>
       </div>
 
