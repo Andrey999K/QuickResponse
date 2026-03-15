@@ -13,6 +13,7 @@ export interface Search {
   experience: string[];
   cover_letter: string | null;
   count_vacancies: number;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }

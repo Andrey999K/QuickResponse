@@ -55,6 +55,7 @@ async function createTables() {
       experience VARCHAR(50)[] DEFAULT '{}',
       cover_letter TEXT,
       count_vacancies INTEGER DEFAULT 0,
+      is_active BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
