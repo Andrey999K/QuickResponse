@@ -10,6 +10,7 @@ import { SidebarLink } from "@/components/UI/SidebarLink";
 import { UserMenu } from "@/components/UI/UserMenu";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { PageLoader } from "@/components/common/PageLoader";
+import { redirect } from "next/navigation";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -19,6 +20,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, loading } = useCurrentUser();
 
   if (loading) return <PageLoader />;
+
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
     <div className="flex gap-2 p-2 h-screen bg-white dark:bg-gray-900 transition-colors">
