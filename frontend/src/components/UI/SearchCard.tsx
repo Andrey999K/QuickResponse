@@ -93,9 +93,9 @@ export const SearchCard = ({ data }: SearchCardProps) => {
 
         <Row label="Регион:">
           {data.area.length ? (
-            <div className="flex gap-1 items-center">
+            <div className="flex gap-1 items-center overflow-x-auto scrollbar-hidden">
               {getAreaNamesByIds(data.area.map(String)).map((name) => (
-                <Tag key={name}>{name}</Tag>
+                <Tag key={name} className="shrink-0">{name}</Tag>
               ))}
             </div>
           ) : (
