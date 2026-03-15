@@ -20,7 +20,7 @@ const Row = ({ label, children }: { label: string; children: ReactNode }) => (
     <div className="font-bold text-gray-900 dark:text-white/60 whitespace-nowrap">
       {label}
     </div>
-    <div className="text-gray-700 dark:text-gray-300">{children}</div>
+    <div className="text-gray-700 dark:text-gray-300 min-w-0 flex-1">{children}</div>
   </div>
 );
 
