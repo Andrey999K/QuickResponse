@@ -1,8 +1,9 @@
 import { Card, Tag } from "antd";
 import { ReactNode } from "react";
 import { ISearch } from "@/types/Search";
-import { getAreaNamesByIds } from "@/utils/areas";
+import { getAreaNamesByIds } from "@/utils/areaNames";
 import { formatDateTime } from "@/utils/formatDateTime";
+import { getScheduleNamesByIds, getExperienceNamesByIds } from "@/utils/dictionaries";
 // import { getAllAreasFlat } from "@/actions/area-actions";
 // import { getAllDictionaries } from "@/actions/dictionary-actions";
 // import { StartSearchButton } from "@/components/UI/StartSearchButton";
@@ -109,10 +110,9 @@ export const SearchCard = ({ data }: SearchCardProps) => {
             ? (
               <div className="flex gap-1 items-center overflow-x-auto scrollbar-hidden">
                 {
-                  data.schedule.map((item, index) => (
-                    <Tag key={`${data.id + item + index}`} className="shrink-0 !bg-gray-200 dark:!bg-gray-600">
-                      {item}
-                      {/*{getValueById(schedule, item)}*/}
+                  getScheduleNamesByIds(data.schedule).map((name, index) => (
+                    <Tag key={`${data.id + name + index}`} className="shrink-0 !bg-gray-200 dark:!bg-gray-600">
+                      {name}
                     </Tag>
                   ))
                 }
@@ -125,10 +125,9 @@ export const SearchCard = ({ data }: SearchCardProps) => {
             ? (
               <div className="flex gap-1 items-center overflow-x-auto scrollbar-hidden">
                 {
-                  data.experience.map((item, index) => (
-                    <Tag key={`${data.id + item + index}`} className="shrink-0 !bg-gray-200 dark:!bg-gray-600">
-                      {item}
-                      {/*{getValueById(experience, item)}*/}
+                  getExperienceNamesByIds(data.experience).map((name, index) => (
+                    <Tag key={`${data.id + name + index}`} className="shrink-0 !bg-gray-200 dark:!bg-gray-600">
+                      {name}
                     </Tag>
                   ))
                 }
