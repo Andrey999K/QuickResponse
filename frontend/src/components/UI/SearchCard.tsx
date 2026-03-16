@@ -1,4 +1,4 @@
-import { Card, Tag } from "antd";
+import { Card, Tag, Button } from "antd";
 import { ReactNode } from "react";
 import { ISearch } from "@/types/Search";
 import { getAreaNamesByIds } from "@/utils/areaNames";
@@ -7,6 +7,8 @@ import { getExperienceNamesByIds, getScheduleNamesByIds } from "@/utils/dictiona
 import { StartSearchButton } from "@/components/UI/StartSearchButton";
 import { StopSearchButton } from "@/components/UI/StopSearchButton";
 import { MenuSearch } from "@/components/UI/MenuSearch";
+import { useRouter } from "next/navigation";
+import { EyeOutlined } from "@ant-design/icons";
 
 const Row = ({ label, children }: { label: string; children: ReactNode }) => (
   <div
@@ -24,6 +26,12 @@ type SearchCardProps = {
 };
 
 export const SearchCard = ({ data, onDelete }: SearchCardProps) => {
+  const router = useRouter();
+
+  const handleViewVacancies = () => {
+    router.push(`/dashboard/search/${data.id}`);
+  };
+
   // const regions = await getAllAreasFlat();
   // const dictionaries = await getAllDictionaries();
   // const { schedule, experience, employment_form } = dictionaries.data;
@@ -137,9 +145,23 @@ export const SearchCard = ({ data, onDelete }: SearchCardProps) => {
         <Row label="Дата создания:">
           <div>{formatDateTime(data.created_at)}</div>
         </Row>
+
+        {data.last_checked_at && (
+          <Row label="Последнее сканирование:">
+            <div>{formatDateTime(data.last_checked_at)}</div>
+          </Row>
+        )}
       </div>
 
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex justify-between items-center">
+        <Button
+          type="default"
+          icon={<EyeOutlined />}
+          onClick={handleViewVacancies}
+          disabled={data.count_vacancies === 0}
+        >
+          Вакансии ({data.count_vacancies || 0})
+        </Button>
         {data.is_active ? (
           <StopSearchButton searchId={data.id} />
         ) : (
