@@ -64,11 +64,12 @@ export class SchedulerService {
       return;
     }
 
-    // Интервал проверки: раз в 10 минут (для MVP)
-    const cronExpression = "*/10 * * * *"; // Каждые 10 минут
+    // Интервал проверки: раз в 1 минуту (для тестирования)
+    // Для продакшена: "*/10 * * * *" (каждые 10 минут)
+    const cronExpression = "*/1 * * * *"; // Каждую минуту
 
     logger.info(
-      `[Scheduler] Планирование поиска "${search.title}" (ID: ${search.id}) каждые 10 минут`,
+      `[Scheduler] Планирование поиска "${search.title}" (ID: ${search.id}) каждую минуту`,
     );
 
     const task = cron.schedule(cronExpression, async () => {

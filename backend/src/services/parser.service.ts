@@ -103,6 +103,11 @@ export class ParserService {
         `[Parser] Сохранено ${newCount} новых вакансий для поиска "${search.title}"`,
       );
 
+      // Лог для отладки - первые 5 вакансий
+      if (filteredVacancies.length > 0) {
+        logger.info(`[Parser] Примеры hhId: ${filteredVacancies.slice(0, 5).map(v => v.hhId).join(", ")}`);
+      }
+
       return {
         newCount,
         totalCount: filteredVacancies.length,
