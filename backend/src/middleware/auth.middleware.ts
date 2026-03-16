@@ -10,19 +10,20 @@ export const authMiddleware = async (
   next: NextFunction
 ) => {
   try {
-    const authHeader = req.headers.authorization;
+    let token: string | undefined;
 
-    if (!authHeader?.startsWith('Bearer')) {
-      return res.status(401).json({
-        message: "No token provided",
-      });
+    // 1. Пробуем получить токен из cookies
+    if (req.cookies?.authToken) {
+      token = req.cookies.authToken;
     }
-
-    const token = authHeader.split(" ")[1];
+    // 2. Если нет в cookies, пробуем из заголовка Authorization
+    else if (req.headers.authorization?.startsWith("Bearer ")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
 
     if (!token) {
       return res.status(401).json({
-        message: "Invalid token format",
+        message: "No token provided",
       });
     }
 
@@ -33,7 +34,6 @@ export const authMiddleware = async (
     req.userId = decoded.userId;
 
     logger.info(`Token verified for userId: ${decoded.userId}`);
-    // console.log("✅ Token verified, userId:", decoded.userId);
 
     return next();
   } catch (error) {

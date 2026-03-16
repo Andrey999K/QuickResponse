@@ -8,7 +8,7 @@ import { z } from "zod";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { AuthFormField } from "@/components/auth/AuthFormField";
 import { apiClient } from "@/lib/api-client";
-import { User } from "@/types/user";
+import { User } from "@/types/User";
 
 const signUpSchema = z.object({
   email: z.email("Введите корректный email"),

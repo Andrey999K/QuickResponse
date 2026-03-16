@@ -53,8 +53,8 @@ html {
   }
 }
 
-body {
-  font-family: Roboto, sans-serif;
+body, h1, h2, h3, h4, h5, h6, p, span, div, input, button, select, textarea {
+  font-family: BlinkMacSystemFont, -apple-system, sans-serif !important;
 }
 
 .ant-card-body {
@@ -80,4 +80,13 @@ body {
     background: #1f2937 !important;
     color: #f9fafb !important;
   }
+}
+
+.scrollbar-hidden {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE */
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
 }

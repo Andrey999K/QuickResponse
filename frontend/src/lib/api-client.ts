@@ -50,7 +50,28 @@ class ApiClient {
     });
   }
 
-  // аналогично put, patch, delete
+  put<T>(endpoint: string, data?: object, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "PUT",
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  patch<T>(endpoint: string, data?: object, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "PATCH",
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  delete<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "DELETE",
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

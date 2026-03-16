@@ -9,6 +9,8 @@ import { Logo } from "@/components/UI/Logo";
 import { SidebarLink } from "@/components/UI/SidebarLink";
 import { UserMenu } from "@/components/UI/UserMenu";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { PageLoader } from "@/components/common/PageLoader";
+import { redirect } from "next/navigation";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -16,8 +18,12 @@ type DashboardLayoutProps = {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, loading } = useCurrentUser();
-  console.log("user", user);
-  console.log("loading", loading);
+
+  if (loading) return <PageLoader />;
+
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
     <div className="flex gap-2 p-2 h-screen bg-white dark:bg-gray-900 transition-colors">
@@ -72,9 +78,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </Card>
 
         {/* Контент */}
-        <Card className="w-full !bg-gray-50 dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 h-full">
+        <div
+          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 min-h-0 flex-1">
           {children}
-        </Card>
+        </div>
       </div>
     </div>
   );

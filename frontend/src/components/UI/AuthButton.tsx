@@ -1,5 +1,9 @@
+"use client";
+
 import { Button } from "antd";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 type AuthButtonProps = {
   text?: string;
@@ -7,29 +11,34 @@ type AuthButtonProps = {
   arrow?: boolean;
 };
 
-export const AuthButton = async ({
-  text,
-  primary = true,
-  arrow,
-}: AuthButtonProps) => {
-  // const user = await getCurrentUser();
-  const user = null;
-  const textButton = text || (user ? "Перейти к откликам" : "Войти");
+export const AuthButton = ({
+                             text,
+                             primary = true,
+                             arrow,
+                           }: AuthButtonProps) => {
+  const router = useRouter();
+  const { user, loading } = useCurrentUser();
+
+  const handleClick = () => {
+    if (user) {
+      router.push("/dashboard/search");
+    } else {
+      router.push("/login");
+    }
+  };
+
+  const buttonText = text || (user ? "Перейти к откликам" : "Войти");
 
   return (
-    <>
-      <Link href={"/login"}>
-        {/*<Link href={"/dashboard/search"}>*/}
-        {/*<Link href={user ? "/dashboard/search" : generateAuthUrl()}>*/}
-        <Button
-          type={primary ? "primary" : "default"}
-          className="!font-semibold"
-          size="large"
-        >
-          {textButton}
-          {arrow && <span className="text-2xl"> &rarr;</span>}
-        </Button>
-      </Link>
-    </>
+    <Button
+      type={primary ? "primary" : "default"}
+      className="!font-semibold"
+      size="large"
+      onClick={handleClick}
+      loading={loading}
+    >
+      {buttonText}
+      {arrow && <span className="text-2xl"> &rarr;</span>}
+    </Button>
   );
 };
