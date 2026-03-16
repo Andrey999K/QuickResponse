@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "axios";
 import * as cheerio from "cheerio";
+import type { AnyNode } from "domhandler";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
 import { Search } from "@/modules/search/search.types";
 import { logger } from "@/utils/log";
@@ -25,9 +26,9 @@ interface ParsedVacancy {
  * Сервис для парсинга вакансий с hh.ru
  */
 export class ParserService {
-  private readonly HH_URL = "https://hh.ru";
+  private readonly HH_URL = "https://m.hh.ru"; // Используем mobile версию
   private readonly USER_AGENT =
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
 
   constructor(private readonly vacancyService: VacancyService) {
     this.vacancyService = vacancyService;
@@ -56,8 +57,8 @@ export class ParserService {
       const $ = cheerio.load(response.data);
       const vacancies: ParsedVacancy[] = [];
 
-      // Парсим вакансии - селекторы для hh.ru
-      $("[data-qa='vacancy-serp__vacancy']").each((_, element) => {
+      // Парсим вакансии - селекторы для mobile hh.ru
+      $("[data-qa='vacancy-serp__vacancy'], .vacancy, .vacancy-card").each((_, element) => {
         const vacancy = this.parseVacancyElement($, element);
         if (vacancy) {
           vacancies.push(vacancy);
@@ -117,42 +118,48 @@ export class ParserService {
    */
   private parseVacancyElement(
     $: cheerio.CheerioAPI,
-    element: cheerio.Element,
+    element: AnyNode,
   ): ParsedVacancy | null {
     try {
       const $element = $(element);
 
-      // Извлекаем hhId из data-vacancy-id
-      const hhId = $element.attr("data-vacancy-id") || null;
+      // Извлекаем hhId из data-vacancy-id или URL
+      let hhId = $element.attr("data-vacancy-id");
+      if (!hhId) {
+        // Пытаемся извлечь ID из ссылки
+        const url = $element.find("a").first().attr("href") || "";
+        const match = url.match(/vacancy\/(\d+)/);
+        if (match) {
+          hhId = match[1];
+        }
+      }
+      
       if (!hhId) {
         return null;
       }
 
       // Заголовок вакансии
       const title =
-        $element.find("[data-qa='vacancy-title']").text().trim() ||
-        $element.find("a[data-qa='vacancy-title']").text().trim() ||
-        "";
+        $element.find("[data-qa='vacancy-title'], .vacancy-title, a").first().text().trim() || "";
 
       // Ссылка на вакансию
-      const url =
-        $element.find("a[data-qa='vacancy-title']").attr("href") || "";
-      const fullUrl = url.startsWith("http") ? url : `${this.HH_URL}${url}`;
+      const url = $element.find("a").first().attr("href") || "";
+      const fullUrl = url.startsWith("http") ? url : `${this.HH_URL.replace("m.", "")}${url}`;
 
       // Компания
       const company =
-        $element.find("[data-qa='vacancy-company']").text().trim() || null;
+        $element.find("[data-qa='vacancy-company'], .vacancy-company, .company").text().trim() || null;
 
       // Зарплата
       const salaryText = $element
-        .find("[data-qa='vacancy-salary']")
+        .find("[data-qa='vacancy-salary'], .vacancy-salary, .salary")
         .text()
         .trim();
       const { salary, currency } = this.parseSalary(salaryText);
 
       // Описание (может быть в отдельном блоке)
       const description =
-        $element.find("[data-qa='vacancy-serp__vacancy-description']").text().trim() || null;
+        $element.find("[data-qa='vacancy-serp__vacancy-description'], .vacancy-description, .description").text().trim() || null;
 
       // Местоположение (area) - пока null, можно распарсить позже
       const area = null;
@@ -196,7 +203,7 @@ export class ParserService {
     if (numbers && numbers.length > 0) {
       // Берём среднее между min и max если указано
       const minSalary = parseInt(numbers[0], 10);
-      const maxSalary = numbers.length > 1 ? parseInt(numbers[1], 10) : minSalary;
+      const maxSalary = numbers.length > 1 ? parseInt(numbers[1]!, 10) : minSalary;
       salary = Math.round((minSalary + maxSalary) / 2);
     }
 
@@ -239,7 +246,7 @@ export class ParserService {
   }
 
   /**
-   * Построение URL для поиска вакансий на hh.ru
+   * Построение URL для поиска вакансий на hh.ru (mobile версия)
    */
   private buildSearchUrl(search: Search): string {
     const params = new URLSearchParams();
@@ -252,7 +259,6 @@ export class ParserService {
     // Зарплата
     if (search.salary) {
       params.set("salary", search.salary.toString());
-      params.set("only_with_salary", "true");
     }
 
     // Регионы (area)
@@ -260,19 +266,19 @@ export class ParserService {
       params.append("area", areaId.toString());
     });
 
-    // График работы (schedule)
+    // График работы (schedule) - маппинг для hh.ru
     search.schedule.forEach((scheduleItem) => {
-      params.append("schedule", scheduleItem);
+      params.append("schedule", ParserService.mapScheduleToHh(scheduleItem));
     });
 
-    // Тип занятости (employment)
+    // Тип занятости (employment) - маппинг для hh.ru
     search.employment.forEach((employmentItem) => {
-      params.append("employment", employmentItem);
+      params.append("employment", ParserService.mapEmploymentToHh(employmentItem));
     });
 
-    // Опыт работы (experience)
+    // Опыт работы (experience) - маппинг для hh.ru
     search.experience.forEach((experienceItem) => {
-      params.append("experience", experienceItem);
+      params.append("experience", ParserService.mapExperienceToHh(experienceItem));
     });
 
     // Дата публикации вакансии (freshness)
