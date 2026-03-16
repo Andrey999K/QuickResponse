@@ -14,6 +14,8 @@ import { userRoutes } from "@/modules/users/user.routes";
 import { searchRoutes } from "@/modules/search/search.routes";
 import { vacancyRoutes } from "@/modules/vacancies/vacancy.routes";
 import { initDatabase } from "@/config/db/initDb";
+import { VacancyService } from "@/modules/vacancies/vacancy.service";
+import { SchedulerService } from "@/services/scheduler.service";
 
 const app = express();
 
@@ -46,6 +48,24 @@ async function main() {
     app.use("/api/users", authMiddleware, userRoutes);
     app.use("/api/search", authMiddleware, searchRoutes);
     app.use("/api/vacancies", authMiddleware, vacancyRoutes);
+
+    // Инициализируем планировщик задач
+    const vacancyService = new VacancyService();
+    const schedulerService = new SchedulerService(vacancyService);
+    await schedulerService.initialize();
+
+    // Graceful shutdown
+    process.on("SIGINT", async () => {
+      logger.info("[Server] Graceful shutdown...");
+      await schedulerService.shutdown();
+      process.exit(0);
+    });
+
+    process.on("SIGTERM", async () => {
+      logger.info("[Server] Graceful shutdown...");
+      await schedulerService.shutdown();
+      process.exit(0);
+    });
 
     app.use(notFound);
     app.use(errorHandler);
