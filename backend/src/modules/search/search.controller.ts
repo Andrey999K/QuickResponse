@@ -4,6 +4,7 @@ import { AuthRequest } from "@/types/authRequest";
 import { createSearchDto, updateSearchDto } from "./search.dto";
 import { Search } from "./search.types";
 import { logger } from "@/utils/log";
+import { getSchedulerService } from "@/server";
 
 const searchService = new SearchService();
 
@@ -141,6 +142,18 @@ export const toggleSearchStatus = async (req: AuthRequest, res: Response) => {
 
     if (!updatedSearch) {
       return res.status(404).json({ message: "Search not found" });
+    }
+
+    // Уведомляем планировщик об изменении статуса
+    const scheduler = getSchedulerService();
+    if (scheduler) {
+      if (is_active) {
+        scheduler.addSearch({ id: Number(id), title: updatedSearch.title, is_active });
+        logger.info(`[Search] Поиск "${updatedSearch.title}" запущен`);
+      } else {
+        scheduler.removeSearch(Number(id));
+        logger.info(`[Search] Поиск "${updatedSearch.title}" остановлен`);
+      }
     }
 
     return res.json(updatedSearch);

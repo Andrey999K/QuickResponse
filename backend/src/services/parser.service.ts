@@ -43,7 +43,8 @@ export class ParserService {
   }> {
     try {
       const url = this.buildSearchUrl(search);
-      logger.info(`[Parser] Начинаем парсинг для поиска "${search.title}" по URL: ${url}`);
+      logger.info(`[Parser] Начинаем парсинг для поиска "${search.title}" (ID: ${search.id})`);
+      logger.info(`[Parser] URL запроса: ${url}`);
 
       const response = await axios.get(url, {
         headers: {
@@ -53,6 +54,8 @@ export class ParserService {
         },
         timeout: 15000,
       });
+
+      logger.info(`[Parser] Получен ответ от hh.ru, статус: ${response.status}`);
 
       const $ = cheerio.load(response.data);
       const vacancies: ParsedVacancy[] = [];
