@@ -6,8 +6,8 @@ import { INotification } from "@/types/Notification";
 
 // Ключи для кэша
 export const notificationKeys = {
-  all: "notifications" as const,
-  unread: "notifications-unread" as const,
+  all: (limit = 50, offset = 0) => `/api/notifications?limit=${limit}&offset=${offset}` as const,
+  unread: "/api/notifications/unread" as const,
 };
 
 // Fetcher для SWR
@@ -23,7 +23,7 @@ export const useNotifications = (limit = 50, offset = 0) => {
     data: INotification[];
     meta: { limit: number; offset: number };
   }>(
-    `/api/notifications?limit=${limit}&offset=${offset}`,
+    notificationKeys.all(limit, offset),
     fetcher,
     {
       revalidateOnFocus: false,
@@ -45,7 +45,7 @@ export const useNotifications = (limit = 50, offset = 0) => {
  */
 export const useUnreadNotifications = () => {
   const { data, isLoading, error, mutate } = useSWR<{ data: { count: number } }>(
-    "/api/notifications/unread",
+    notificationKeys.unread,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -71,13 +71,13 @@ export const useMarkNotificationAsRead = () => {
   const markNotificationAsRead = async (notificationId: number) => {
     try {
       await apiClient.post(`/api/notifications/${notificationId}/read`);
-      
+
       // Обновляем кэш непрочитанных
       globalMutate(notificationKeys.unread);
-      
-      // Обновляем список уведомлений
-      globalMutate(notificationKeys.all);
-      
+
+      // Обновляем список уведомлений (с параметрами по умолчанию)
+      globalMutate(notificationKeys.all(50, 0));
+
       return true;
     } catch (error) {
       console.error("Mark notification as read error:", error);
@@ -95,13 +95,13 @@ export const useMarkAllNotificationsAsRead = () => {
   const markAllNotificationsAsRead = async () => {
     try {
       await apiClient.post("/api/notifications/read-all");
-      
+
       // Обновляем кэш непрочитанных
       globalMutate(notificationKeys.unread);
-      
-      // Обновляем список уведомлений
-      globalMutate(notificationKeys.all);
-      
+
+      // Обновляем список уведомлений (с параметрами по умолчанию)
+      globalMutate(notificationKeys.all(50, 0));
+
       return true;
     } catch (error) {
       console.error("Mark all notifications as read error:", error);
@@ -119,13 +119,13 @@ export const useDeleteNotification = () => {
   const deleteNotification = async (notificationId: number) => {
     try {
       await apiClient.delete(`/api/notifications/${notificationId}`);
-      
+
       // Обновляем кэш непрочитанных
       globalMutate(notificationKeys.unread);
-      
-      // Обновляем список уведомлений
-      globalMutate(notificationKeys.all);
-      
+
+      // Обновляем список уведомлений (с параметрами по умолчанию)
+      globalMutate(notificationKeys.all(50, 0));
+
       return true;
     } catch (error) {
       console.error("Delete notification error:", error);

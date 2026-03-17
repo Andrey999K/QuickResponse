@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, CheckCircle, Delete, Inbox } from "@deemlol/next-icons";
-import { Avatar, Button, Dropdown, Empty, List, MenuProps, Spin, Tooltip } from "antd";
+import { Avatar, Button, Dropdown, Empty, MenuProps, Spin, Tooltip } from "antd";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { ReactNode } from "react";
@@ -31,7 +31,7 @@ export const NotificationDropdown = ({
   open,
   onOpenChange,
 }: NotificationDropdownProps) => {
-  const { notifications, isLoading } = useNotifications(10);
+  const { notifications, isLoading, mutate, error } = useNotifications(10, 0);
   const { unreadCount, mutate: mutateUnread } = useUnreadNotifications();
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const { markAllNotificationsAsRead } = useMarkAllNotificationsAsRead();
@@ -40,6 +40,8 @@ export const NotificationDropdown = ({
   const handleNotificationClick = async (notification: INotification) => {
     if (!notification.is_read) {
       await markNotificationAsRead(notification.id);
+      // Обновляем локально кэш после клика
+      mutate();
     }
   };
 
@@ -51,6 +53,9 @@ export const NotificationDropdown = ({
   const handleDelete = async (e: React.MouseEvent, notificationId: number) => {
     e.stopPropagation();
     await deleteNotification(notificationId);
+    // Обновляем локально кэш после удаления
+    mutate();
+    mutateUnread();
   };
 
   const getNotificationIcon = (type: NotificationType) => {
@@ -77,8 +82,8 @@ export const NotificationDropdown = ({
     {
       key: "header",
       label: (
-        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
-          <span className="font-medium">Уведомления</span>
+        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+          <span className="font-medium text-gray-900 dark:text-white">Уведомления</span>
           {unreadCount > 0 && (
             <Button
               type="link"
@@ -104,69 +109,61 @@ export const NotificationDropdown = ({
           ) : notifications.length === 0 ? (
             <Empty
               description="Нет уведомлений"
-              image={<Inbox size={48} className="text-gray-300" />}
+              image={<Inbox size={48} className="text-gray-300 dark:text-gray-600" />}
               className="py-8"
             />
           ) : (
-            <List
-              dataSource={notifications}
-              renderItem={(notification) => (
-                <List.Item
-                  className={`cursor-pointer hover:bg-gray-50 ${
-                    !notification.is_read ? "bg-blue-50" : ""
+            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`flex items-start gap-3 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+                    !notification.is_read ? "bg-blue-50 dark:bg-blue-900/20" : "bg-white dark:bg-gray-900"
                   }`}
                   onClick={() => handleNotificationClick(notification)}
-                  actions={[
-                    <Tooltip key="delete" title="Удалить">
-                      <Button
-                        type="text"
-                        danger
-                        size="small"
-                        icon={<Delete size={14} />}
-                        onClick={(e) => handleDelete(e, notification.id)}
-                      />
-                    </Tooltip>,
-                  ]}
                 >
-                  <List.Item.Meta
-                    avatar={
-                      <Avatar
-                        size={40}
-                        style={{
-                          backgroundColor: notification.is_read
-                            ? "#d9d9d9"
-                            : "#1890ff",
-                        }}
+                  <Avatar
+                    size={40}
+                    style={{
+                      backgroundColor: notification.is_read
+                        ? "#d9d9d9"
+                        : "#1890ff",
+                    }}
+                    className="flex-shrink-0"
+                  >
+                    {getNotificationIcon(notification.type)}
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className={`text-sm ${
+                          !notification.is_read ? "font-semibold" : ""
+                        } text-gray-900 dark:text-white`}
                       >
-                        {getNotificationIcon(notification.type)}
-                      </Avatar>
-                    }
-                    title={
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={
-                            !notification.is_read ? "font-semibold" : ""
-                          }
-                        >
-                          {notification.title}
-                        </span>
-                        {!notification.is_read && (
-                          <span className="w-2 h-2 bg-blue-500 rounded-full" />
-                        )}
-                      </div>
-                    }
-                    description={
-                      <>
-                        <div className="text-sm">{notification.message}</div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {dayjs(notification.created_at).fromNow()}
-                        </div>
-                      </>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
+                        {notification.title}
+                      </span>
+                      {!notification.is_read && (
+                        <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{notification.message}</div>
+                    <div className="text-xs text-gray-400 dark:text-gray-500">
+                      {dayjs(notification.created_at).fromNow()}
+                    </div>
+                  </div>
+                  <Tooltip title="Удалить">
+                    <Button
+                      type="text"
+                      danger
+                      size="small"
+                      icon={<Delete size={14} />}
+                      onClick={(e) => handleDelete(e, notification.id)}
+                      className="flex-shrink-0"
+                    />
+                  </Tooltip>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       ),
@@ -180,12 +177,14 @@ export const NotificationDropdown = ({
       trigger={["click"]}
       open={open}
       onOpenChange={onOpenChange}
-      dropdownRender={(menu) => (
-        <div className="w-[380px] bg-white rounded-lg shadow-lg border border-gray-100">
+      popupRender={(menu) => (
+        <div className="w-[380px] bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700">
           {menu}
         </div>
       )}
-      overlayClassName="notification-dropdown"
+      classNames={{
+        root: "notification-dropdown",
+      }}
     >
       {children}
     </Dropdown>
