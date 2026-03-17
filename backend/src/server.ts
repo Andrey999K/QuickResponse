@@ -13,7 +13,13 @@ import { authRoutes } from "@/modules/auth/auth.routes";
 import { userRoutes } from "@/modules/users/user.routes";
 import { searchRoutes } from "@/modules/search/search.routes";
 import { vacancyRoutes } from "@/modules/vacancies/vacancy.routes";
-import { initDatabase } from "@/config/db/initDb";
+import { VacancyService } from "@/modules/vacancies/vacancy.service";
+import { SchedulerService } from "@/services/scheduler.service";
+
+// Глобальный экземпляр планировщика
+let schedulerService: SchedulerService;
+
+export const getSchedulerService = () => schedulerService;
 
 const app = express();
 
@@ -34,9 +40,10 @@ async function main() {
     await testConnection();
 
     // Инициализируем базу данных (создаём таблицы и заполняем данными)
-    if (env.NODE_ENV === "development") {
-      await initDatabase();
-    }
+    // Закомментировано для отладки - раскомментируй при необходимости
+    // if (env.NODE_ENV === "development") {
+    //   await initDatabase();
+    // }
 
     app.get("/", (_req: Request, res: Response) => {
       res.send("Hello World!");
@@ -46,6 +53,24 @@ async function main() {
     app.use("/api/users", authMiddleware, userRoutes);
     app.use("/api/search", authMiddleware, searchRoutes);
     app.use("/api/vacancies", authMiddleware, vacancyRoutes);
+
+    // Инициализируем планировщик задач
+    const vacancyService = new VacancyService();
+    schedulerService = new SchedulerService(vacancyService);
+    await schedulerService.initialize();
+
+    // Graceful shutdown
+    process.on("SIGINT", async () => {
+      logger.info("[Server] Graceful shutdown...");
+      await schedulerService.shutdown();
+      process.exit(0);
+    });
+
+    process.on("SIGTERM", async () => {
+      logger.info("[Server] Graceful shutdown...");
+      await schedulerService.shutdown();
+      process.exit(0);
+    });
 
     app.use(notFound);
     app.use(errorHandler);

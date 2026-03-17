@@ -116,6 +116,19 @@ export class VacancyService {
         ],
       };
       const result = await pool.query(query);
+      
+      // Если вакансия создана (не дубликат), обновляем count_vacancies
+      if (result.rowCount !== null && result.rowCount > 0) {
+        await pool.query({
+          text: `
+            UPDATE searches
+            SET count_vacancies = count_vacancies + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+          `,
+          values: [searchId],
+        });
+      }
+      
       return result.rows[0] || null;
     } catch (error) {
       console.error("Error creating vacancy:", error);
