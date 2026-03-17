@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import express, { Request, Response } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
+import jwt from "jsonwebtoken";
 import { authMiddleware } from "./middleware/auth.middleware";
 import { corsMiddleware } from "./middleware/cors.middleware";
 import { errorHandler, notFound } from "@/middleware/error.middleware";
@@ -61,17 +62,37 @@ async function main() {
 
     // SSE endpoint для уведомлений
     // GET /api/sse/notifications
-    app.get("/api/sse/notifications", authMiddleware, (req: AuthRequest, res) => {
-      const userId = req.userId!;
+    app.get("/api/sse/notifications", (req: AuthRequest, res) => {
+      // Логируем запрос для отладки
+      logger.info(`[SSE] Request received. Cookies: ${JSON.stringify(req.cookies)}`);
+      
+      // Проверяем токен вручную (без middleware)
+      const token: string | undefined = req.cookies?.authToken;
 
-      // Настраиваем SSE заголовки
-      res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Connection", "keep-alive");
-      res.setHeader("X-Accel-Buffering", "no"); // Отключаем буферизацию nginx
+      if (!token) {
+        logger.warn("[SSE] No token provided");
+        res.status(401).json({ message: "No token provided" });
+        return;
+      }
 
-      // Добавляем клиента
-      sseService.addClient(userId, res);
+      try {
+        const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: number };
+        const userId = decoded.userId;
+
+        // Настраиваем SSE заголовки
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+        res.setHeader("X-Accel-Buffering", "no"); // Отключаем буферизацию nginx
+
+        // Добавляем клиента
+        sseService.addClient(userId, res);
+
+        logger.info(`[SSE] Client connected. User ID: ${userId}`);
+      } catch (error) {
+        logger.error(`[SSE] Token verification error: ${(error as Error).message}`);
+        res.status(401).json({ message: "Invalid token" });
+      }
     });
 
     // Инициализируем планировщик задач

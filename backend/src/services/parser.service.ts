@@ -88,7 +88,6 @@ export class ParserService {
       // Парсим несколько страниц
       for (let page = 0; page < maxPages; page++) {
         const pageUrl = page === 0 ? baseUrl : `${baseUrl}&page=${page}`;
-        logger.info(`[Parser] Парсинг страницы ${page + 1}/${maxPages}: ${pageUrl}`);
 
         try {
           const response = await axios.get(pageUrl, {
@@ -99,8 +98,6 @@ export class ParserService {
             },
             timeout: 15000,
           });
-
-          logger.info(`[Parser] Страница ${page + 1}: статус ${response.status}`);
 
           const $page = cheerio.load(response.data);
           const vacancies: ParsedVacancy[] = [];
@@ -115,8 +112,7 @@ export class ParserService {
 
           // 2. Парсим вакансии из JSON данных (hh.ru хранит данные в script тегах)
           const jsonVacancies = this.parseVacanciesFromJson(response.data);
-          logger.info(`[Parser] Страница ${page + 1}: найдено ${jsonVacancies.length} вакансий в JSON`);
-          
+
           // Добавляем вакансии из JSON, исключая дубликаты по hhId
           const existingIds = new Set(vacancies.map((v) => v.hhId));
           for (const jsonVacancy of jsonVacancies) {
@@ -126,16 +122,12 @@ export class ParserService {
             }
           }
 
-          logger.info(`[Parser] Страница ${page + 1}: найдено ${vacancies.length} вакансий (вёрстка + JSON)`);
-
           if (vacancies.length === 0) {
-            logger.info(`[Parser] Больше нет вакансий, завершаем на странице ${page + 1}`);
             break;
           }
 
           // Фильтруем по excluded_text
           const filteredVacancies = this.filterByExcludedText(vacancies, search.excluded_text);
-          logger.info(`[Parser] После фильтрации: ${filteredVacancies.length} вакансий`);
 
           // Сохраняем вакансии
           let savedCount = 0;
@@ -159,8 +151,7 @@ export class ParserService {
               savedCount++;
             }
           }
-          
-          logger.info(`[Parser] Сохранено новых вакансий: ${savedCount}`);
+
           newCount += savedCount;
           totalCount += filteredVacancies.length;
 
@@ -171,13 +162,13 @@ export class ParserService {
         } catch (pageError) {
           const axiosError = pageError as AxiosError;
           logger.error(`[Parser] Ошибка при парсинге страницы ${page + 1}: ${axiosError.message}`);
-          
+
           // Если это 429 (Too Many Requests), прекращаем парсинг
           if (axiosError.status === 429) {
             logger.warn(`[Parser] hh.ru блокирует запросы (429). Прекращаем парсинг после страницы ${page + 1}`);
             break;
           }
-          
+
           // Продолжаем парсинг следующих страниц, если это не критическая ошибка
           logger.warn(`[Parser] Продолжаем парсинг следующей страницы...`);
         }
