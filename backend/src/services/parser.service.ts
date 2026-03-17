@@ -42,11 +42,12 @@ export class ParserService {
     totalCount: number;
   }> {
     try {
-      const url = this.buildSearchUrl(search);
+      const baseUrl = this.buildSearchUrl(search);
       logger.info(`[Parser] Начинаем парсинг для поиска "${search.title}" (ID: ${search.id})`);
-      logger.info(`[Parser] URL запроса: ${url}`);
+      logger.info(`[Parser] Базовый URL: ${baseUrl}`);
 
-      const response = await axios.get(url, {
+      // Сначала получаем первую страницу, чтобы узнать общее количество вакансий
+      const firstResponse = await axios.get(baseUrl, {
         headers: {
           "User-Agent": this.USER_AGENT,
           Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -55,62 +56,144 @@ export class ParserService {
         timeout: 15000,
       });
 
-      logger.info(`[Parser] Получен ответ от hh.ru, статус: ${response.status}`);
+      const $ = cheerio.load(firstResponse.data);
 
-      const $ = cheerio.load(response.data);
-      const vacancies: ParsedVacancy[] = [];
+      // Пытаемся найти общее количество вакансий
+      // hh.ru обычно показывает что-то вроде "1 234 вакансии" или "Найдено 97 вакансий"
+      const h1Text = $("h1").text();
+      logger.info(`[Parser] H1 текст: "${h1Text}"`);
+      
+      const totalText = h1Text;
+      const totalMatch = totalText.match(/(\d{1,3}(?:\s?\d{0,3})*)\s*(?:ваканси|вакансия|вакансий)/i);
+      let estimatedTotal = 20; // По умолчанию
 
-      // Парсим вакансии - селекторы для mobile hh.ru
-      $("[data-qa='vacancy-serp__vacancy'], .vacancy, .vacancy-card").each((_, element) => {
-        const vacancy = this.parseVacancyElement($, element);
-        if (vacancy) {
-          vacancies.push(vacancy);
-        }
-      });
+      if (totalMatch && totalMatch[1]) {
+        estimatedTotal = parseInt(totalMatch[1].replace(/\s/g, ""), 10);
+        logger.info(`[Parser] Найдено вакансий (по оценке hh.ru): ${estimatedTotal}`);
+      } else {
+        logger.warn(`[Parser] Не удалось найти количество вакансий в H1, используем значение по умолчанию: ${estimatedTotal}`);
+      }
 
-      logger.info(`[Parser] Найдено ${vacancies.length} вакансий для поиска "${search.title}"`);
+      // Вычисляем количество страниц (20 вакансий на странице)
+      // Увеличиваем максимум до 25 страниц для более полного парсинга (500 вакансий)
+      const maxPages = Math.min(Math.ceil(estimatedTotal / 20), 25);
+      logger.info(`[Parser] Планируется страниц для парсинга: ${maxPages} (из ${Math.ceil(estimatedTotal / 20)})`);
 
-      // Фильтруем по excluded_text
-      const filteredVacancies = this.filterByExcludedText(vacancies, search.excluded_text);
-      logger.info(
-        `[Parser] После фильтрации исключений осталось ${filteredVacancies.length} вакансий`,
-      );
-
-      // Сохраняем вакансии и считаем новые
       let newCount = 0;
-      for (const vacancy of filteredVacancies) {
-        const created = await this.vacancyService.createVacancy(
-          search.id,
-          vacancy.hhId,
-          vacancy.title,
-          vacancy.company,
-          vacancy.salary,
-          vacancy.currency,
-          vacancy.url,
-          vacancy.area,
-          vacancy.schedule,
-          vacancy.employment,
-          vacancy.experience,
-          vacancy.description,
-        );
+      let totalCount = 0;
 
-        if (created) {
-          newCount++;
+      // Парсим несколько страниц
+      for (let page = 0; page < maxPages; page++) {
+        const pageUrl = page === 0 ? baseUrl : `${baseUrl}&page=${page}`;
+        logger.info(`[Parser] Парсинг страницы ${page + 1}/${maxPages}: ${pageUrl}`);
+
+        try {
+          const response = await axios.get(pageUrl, {
+            headers: {
+              "User-Agent": this.USER_AGENT,
+              Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+              "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+            },
+            timeout: 15000,
+          });
+
+          logger.info(`[Parser] Страница ${page + 1}: статус ${response.status}`);
+
+          // Сохраняем HTML для отладки (последние 2 страницы)
+          if (page >= maxPages - 2) {
+            const fs = await import("fs");
+            const path = await import("path");
+            const outputPath = path.join(process.cwd(), "logs", `hh-page-${page + 1}.html`);
+            fs.writeFileSync(outputPath, response.data);
+            logger.info(`[Parser] HTML страницы ${page + 1} сохранён в: ${outputPath}`);
+          }
+
+          const $page = cheerio.load(response.data);
+          const vacancies: ParsedVacancy[] = [];
+
+          // 1. Парсим вакансии из вёрстки (mobile версия)
+          $page("[data-qa='vacancy-serp__vacancy'], .vacancy, .vacancy-card").each((_, element) => {
+            const vacancy = this.parseVacancyElement($page, element);
+            if (vacancy) {
+              vacancies.push(vacancy);
+            }
+          });
+
+          // 2. Парсим вакансии из JSON данных (hh.ru хранит данные в script тегах)
+          const jsonVacancies = this.parseVacanciesFromJson(response.data);
+          logger.info(`[Parser] Страница ${page + 1}: найдено ${jsonVacancies.length} вакансий в JSON`);
+          
+          // Добавляем вакансии из JSON, исключая дубликаты по hhId
+          const existingIds = new Set(vacancies.map((v) => v.hhId));
+          for (const jsonVacancy of jsonVacancies) {
+            if (!existingIds.has(jsonVacancy.hhId)) {
+              vacancies.push(jsonVacancy);
+              existingIds.add(jsonVacancy.hhId);
+            }
+          }
+
+          logger.info(`[Parser] Страница ${page + 1}: найдено ${vacancies.length} вакансий (вёрстка + JSON)`);
+
+          if (vacancies.length === 0) {
+            logger.info(`[Parser] Больше нет вакансий, завершаем на странице ${page + 1}`);
+            break;
+          }
+
+          // Фильтруем по excluded_text
+          const filteredVacancies = this.filterByExcludedText(vacancies, search.excluded_text);
+          logger.info(`[Parser] После фильтрации: ${filteredVacancies.length} вакансий`);
+
+          // Сохраняем вакансии
+          let savedCount = 0;
+          for (const vacancy of filteredVacancies) {
+            const created = await this.vacancyService.createVacancy(
+              search.id,
+              vacancy.hhId,
+              vacancy.title,
+              vacancy.company,
+              vacancy.salary,
+              vacancy.currency,
+              vacancy.url,
+              vacancy.area,
+              vacancy.schedule,
+              vacancy.employment,
+              vacancy.experience,
+              vacancy.description,
+            );
+
+            if (created) {
+              savedCount++;
+            }
+          }
+          
+          logger.info(`[Parser] Сохранено новых вакансий: ${savedCount}`);
+          newCount += savedCount;
+          totalCount += filteredVacancies.length;
+
+          // Небольшая задержка между страницами (чтобы не блокировали)
+          if (page < maxPages - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 2000)); // Увеличили задержку до 2 секунд
+          }
+        } catch (pageError) {
+          const axiosError = pageError as AxiosError;
+          logger.error(`[Parser] Ошибка при парсинге страницы ${page + 1}: ${axiosError.message}`);
+          
+          // Если это 429 (Too Many Requests), прекращаем парсинг
+          if (axiosError.status === 429) {
+            logger.warn(`[Parser] hh.ru блокирует запросы (429). Прекращаем парсинг после страницы ${page + 1}`);
+            break;
+          }
+          
+          // Продолжаем парсинг следующих страниц, если это не критическая ошибка
+          logger.warn(`[Parser] Продолжаем парсинг следующей страницы...`);
         }
       }
 
-      logger.info(
-        `[Parser] Сохранено ${newCount} новых вакансий для поиска "${search.title}"`,
-      );
-
-      // Лог для отладки - первые 5 вакансий
-      if (filteredVacancies.length > 0) {
-        logger.info(`[Parser] Примеры hhId: ${filteredVacancies.slice(0, 5).map(v => v.hhId).join(", ")}`);
-      }
+      logger.info(`[Parser] Завершено. Всего найдено: ${totalCount}, Новых: ${newCount}`);
 
       return {
         newCount,
-        totalCount: filteredVacancies.length,
+        totalCount,
       };
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -119,6 +202,44 @@ export class ParserService {
       );
       throw error;
     }
+  }
+
+  /**
+   * Парсинг вакансий из JSON данных в HTML
+   * hh.ru хранит данные о вакансиях в script тегах с type="application/json"
+   */
+  private parseVacanciesFromJson(html: string): ParsedVacancy[] {
+    const vacancies: ParsedVacancy[] = [];
+
+    // Ищем паттерн с данными о вакансиях в JSON формате
+    // hh.ru использует формат: "vacancyId":12345,"name":"Название вакансии"
+    const jsonPattern = /"vacancyId":(\d+),"name":"([^"]+)"/g;
+    const matches = [...html.matchAll(jsonPattern)];
+
+    for (const match of matches) {
+      const hhId = match[1];
+      const name = match[2]
+        ? match[2].replace(/&quot;/g, '"').replace(/&amp;/g, "&")
+        : "";
+
+      if (!hhId || !name) continue;
+
+      vacancies.push({
+        hhId,
+        title: name,
+        company: null,
+        salary: null,
+        currency: "RUR",
+        url: `https://hh.ru/vacancy/${hhId}`,
+        area: null,
+        schedule: null,
+        employment: null,
+        experience: null,
+        description: null,
+      });
+    }
+
+    return vacancies;
   }
 
   /**
