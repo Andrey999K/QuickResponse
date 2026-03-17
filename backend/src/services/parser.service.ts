@@ -74,10 +74,10 @@ export class ParserService {
         logger.warn(`[Parser] Не удалось найти количество вакансий в H1, используем значение по умолчанию: ${estimatedTotal}`);
       }
 
-      // Вычисляем количество страниц (20 вакансий на странице)
-      // Увеличиваем максимум до 25 страниц для более полного парсинга (500 вакансий)
-      const maxPages = Math.min(Math.ceil(estimatedTotal / 20), 25);
-      logger.info(`[Parser] Планируется страниц для парсинга: ${maxPages} (из ${Math.ceil(estimatedTotal / 20)})`);
+      // Вычисляем количество страниц (50 вакансий на странице на mobile.hh.ru)
+      // Максимум 25 страниц для более полного парсинга (1250 вакансий)
+      const maxPages = Math.min(Math.ceil(estimatedTotal / 50), 25);
+      logger.info(`[Parser] Планируется страниц для парсинга: ${maxPages} (из ${Math.ceil(estimatedTotal / 50)})`);
 
       let newCount = 0;
       let totalCount = 0;
@@ -98,15 +98,6 @@ export class ParserService {
           });
 
           logger.info(`[Parser] Страница ${page + 1}: статус ${response.status}`);
-
-          // Сохраняем HTML для отладки (последние 2 страницы)
-          if (page >= maxPages - 2) {
-            const fs = await import("fs");
-            const path = await import("path");
-            const outputPath = path.join(process.cwd(), "logs", `hh-page-${page + 1}.html`);
-            fs.writeFileSync(outputPath, response.data);
-            logger.info(`[Parser] HTML страницы ${page + 1} сохранён в: ${outputPath}`);
-          }
 
           const $page = cheerio.load(response.data);
           const vacancies: ParsedVacancy[] = [];

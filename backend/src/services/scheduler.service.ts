@@ -10,6 +10,7 @@ import { pool } from "@/config/db/connection";
  */
 export class SchedulerService {
   private readonly jobs: Map<number, ScheduledTask> = new Map();
+  private readonly runningTasks: Set<number> = new Set(); // Отслеживаем выполняющиеся задачи
   private readonly parserService: ParserService;
 
   constructor(vacancyService: VacancyService) {
@@ -84,7 +85,15 @@ export class SchedulerService {
    * Выполнение задачи парсинга
    */
   private async runSearchTask(searchId: number): Promise<void> {
+    // Проверяем, не выполняется ли уже задача для этого поиска
+    if (this.runningTasks.has(searchId)) {
+      logger.warn(`[Scheduler] Задача для поиска ID: ${searchId} уже выполняется, пропускаем`);
+      return;
+    }
+
     try {
+      // Помечаем задачу как выполняющуюся
+      this.runningTasks.add(searchId);
       logger.info(`[Scheduler] Запуск задачи парсинга для поиска ID: ${searchId}`);
 
       // Получаем данные поиска
@@ -120,6 +129,9 @@ export class SchedulerService {
       logger.error(
         `[Scheduler] Ошибка выполнения задачи для поиска ID: ${searchId}: ${(error as Error).message}`,
       );
+    } finally {
+      // Удаляем задачу из выполняющихся
+      this.runningTasks.delete(searchId);
     }
   }
 
