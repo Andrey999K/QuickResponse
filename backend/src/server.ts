@@ -13,8 +13,12 @@ import { authRoutes } from "@/modules/auth/auth.routes";
 import { userRoutes } from "@/modules/users/user.routes";
 import { searchRoutes } from "@/modules/search/search.routes";
 import { vacancyRoutes } from "@/modules/vacancies/vacancy.routes";
+import { notificationRoutes } from "@/modules/notifications/notification.routes";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
+import { NotificationService } from "@/modules/notifications/notification.service";
 import { SchedulerService } from "@/services/scheduler.service";
+import { sseService } from "@/services/sse.service";
+import { AuthRequest } from "@/types/authRequest";
 
 // Глобальный экземпляр планировщика
 let schedulerService: SchedulerService;
@@ -53,10 +57,27 @@ async function main() {
     app.use("/api/users", authMiddleware, userRoutes);
     app.use("/api/search", authMiddleware, searchRoutes);
     app.use("/api/vacancies", authMiddleware, vacancyRoutes);
+    app.use("/api/notifications", authMiddleware, notificationRoutes);
+
+    // SSE endpoint для уведомлений
+    // GET /api/sse/notifications
+    app.get("/api/sse/notifications", authMiddleware, (req: AuthRequest, res) => {
+      const userId = req.userId!;
+
+      // Настраиваем SSE заголовки
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Accel-Buffering", "no"); // Отключаем буферизацию nginx
+
+      // Добавляем клиента
+      sseService.addClient(userId, res);
+    });
 
     // Инициализируем планировщик задач
     const vacancyService = new VacancyService();
-    schedulerService = new SchedulerService(vacancyService);
+    const notificationService = new NotificationService();
+    schedulerService = new SchedulerService(vacancyService, notificationService);
     await schedulerService.initialize();
 
     // Graceful shutdown

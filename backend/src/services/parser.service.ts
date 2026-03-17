@@ -4,6 +4,8 @@ import type { AnyNode } from "domhandler";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
 import { Search } from "@/modules/search/search.types";
 import { logger } from "@/utils/log";
+import { NotificationService } from "@/modules/notifications/notification.service";
+import { sseService } from "./sse.service";
 
 /**
  * Результат парсинга одной вакансии
@@ -30,9 +32,10 @@ export class ParserService {
   private readonly USER_AGENT =
     "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
 
-  constructor(private readonly vacancyService: VacancyService) {
-    this.vacancyService = vacancyService;
-  }
+  constructor(
+    private readonly vacancyService: VacancyService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   /**
    * Парсинг вакансий по параметрам поиска
@@ -181,6 +184,32 @@ export class ParserService {
       }
 
       logger.info(`[Parser] Завершено. Всего найдено: ${totalCount}, Новых: ${newCount}`);
+
+      // Если есть новые вакансии — отправляем уведомление
+      if (newCount > 0) {
+        try {
+          // Создаём in-app уведомление
+          await this.notificationService.notifyNewVacancies(
+            search.user_id,
+            search.title,
+            newCount,
+          );
+
+          // Отправляем SSE уведомление подключённым клиентам
+          const notification = {
+            id: Date.now(),
+            title: `Новые вакансии по поиску "${search.title}"`,
+            message: `Найдено ${newCount} новых вакансий`,
+            type: 'vacancy' as const,
+            created_at: new Date(),
+          };
+          sseService.sendNotification(search.user_id, notification);
+
+          logger.info(`[Parser] Уведомление отправлено пользователю ${search.user_id}`);
+        } catch (notificationError) {
+          logger.error(`[Parser] Ошибка отправки уведомления: ${(notificationError as Error).message}`);
+        }
+      }
 
       return {
         newCount,

@@ -1,12 +1,13 @@
-import { Request, Response } from "express";
-import { NotificationService } from "./notification.service";
+import { Response } from "express";
 import { AuthRequest } from "@/types/authRequest";
+import { NotificationService } from "./notification.service";
 
 /**
  * Контроллер для работы с уведомлениями
  */
 export class NotificationController {
-  constructor(private readonly notificationService: NotificationService) {}
+  constructor(private readonly notificationService: NotificationService) {
+  }
 
   /**
    * Получить уведомления пользователя
@@ -14,7 +15,7 @@ export class NotificationController {
    */
   async getNotifications(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.userId!;
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
 
@@ -44,7 +45,7 @@ export class NotificationController {
    */
   async getUnreadCount(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.userId!;
       const count = await this.notificationService.getUnreadCount(userId);
 
       res.json({
@@ -66,8 +67,8 @@ export class NotificationController {
    */
   async markAsRead(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
-      const notificationId = parseInt(req.params.id);
+      const userId = req.userId!;
+      const notificationId = parseInt(req.params.id as string);
 
       const success = await this.notificationService.markAsRead(
         notificationId,
@@ -102,7 +103,7 @@ export class NotificationController {
    */
   async markAllAsRead(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
+      const userId = req.userId!;
       const count = await this.notificationService.markAllAsRead(userId);
 
       res.json({
@@ -124,8 +125,8 @@ export class NotificationController {
    */
   async deleteNotification(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user!.id;
-      const notificationId = parseInt(req.params.id);
+      const userId = req.userId!;
+      const notificationId = parseInt(req.params.id as string);
 
       const success = await this.notificationService.deleteNotification(
         notificationId,
