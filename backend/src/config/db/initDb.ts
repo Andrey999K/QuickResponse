@@ -84,12 +84,22 @@ async function createTables() {
       UNIQUE(search_id, hh_id)
     );
 
-    -- Создаем индексы (только необходимые)
+    -- Создаем таблицу notifications
+    CREATE TABLE notifications (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title VARCHAR(255) NOT NULL,
+      message TEXT NOT NULL,
+      type VARCHAR(50) DEFAULT 'info',
+      is_read BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Создаем индексы
     CREATE INDEX idx_users_email ON users(email);
     CREATE INDEX idx_searches_user_id ON searches(user_id);
     CREATE INDEX idx_vacancies_search_id ON vacancies(search_id);
-    CREATE INDEX idx_vacancies_search_is_new ON vacancies(search_id, is_new) WHERE is_new = TRUE;
-    CREATE INDEX idx_vacancies_search_created ON vacancies(search_id, created_at DESC);
+    CREATE INDEX idx_notifications_user_id ON notifications(user_id);
   `;
 
   await pool.query(createTablesSQL);
