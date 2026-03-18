@@ -2,11 +2,13 @@ import { Response } from "express";
 import { AuthRequest } from "@/types/authRequest";
 import { aiService } from "./ai.service";
 import { UserService } from "@/modules/users/user.service";
+import { VacancyService } from "@/modules/vacancies/vacancy.service";
 
 /**
  * Запрос на генерацию сопроводительного письма
  */
 interface GenerateCoverLetterRequest {
+  vacancyId?: number;
   vacancyTitle: string;
   company?: string | null;
   description?: string | null;
@@ -18,7 +20,10 @@ interface GenerateCoverLetterRequest {
  * Контроллер для работы с AI
  */
 export class AIController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly vacancyService: VacancyService
+  ) {}
 
   /**
    * Сгенерировать сопроводительное письмо
@@ -53,6 +58,11 @@ export class AIController {
         customPrompt: body.customPrompt ?? null,
       });
 
+      // Если указан vacancyId, сохраняем письмо в БД
+      if (body.vacancyId) {
+        await this.vacancyService.updateCoverLetter(body.vacancyId, coverLetter);
+      }
+
       res.json({
         data: {
           coverLetter,
@@ -60,7 +70,7 @@ export class AIController {
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Неизвестная ошибка";
-      
+
       res.status(500).json({
         error: {
           code: "AI_GENERATION_ERROR",

@@ -11,7 +11,7 @@ export class VacancyService {
         text: `
           SELECT id, search_id, hh_id, title, company, salary,
                  currency, url, area, schedule, employment, experience,
-                 description, is_new, created_at
+                 description, cover_letter, is_new, created_at
           FROM vacancies
           WHERE search_id = $1
           ORDER BY created_at DESC
@@ -35,7 +35,7 @@ export class VacancyService {
         text: `
           SELECT id, search_id, hh_id, title, company, salary,
                  currency, url, area, schedule, employment, experience,
-                 description, is_new, created_at
+                 description, cover_letter, is_new, created_at
           FROM vacancies
           WHERE search_id = $1 AND is_new = TRUE
           ORDER BY created_at DESC
@@ -59,7 +59,7 @@ export class VacancyService {
         text: `
           SELECT id, search_id, hh_id, title, company, salary,
                  currency, url, area, schedule, employment, experience,
-                 description, is_new, created_at
+                 description, cover_letter, is_new, created_at
           FROM vacancies
           WHERE id = $1
         `,
@@ -180,6 +180,28 @@ export class VacancyService {
     } catch (error) {
       console.error("Error marking all vacancies as read:", error);
       throw new Error("Error while marking all vacancies as read");
+    }
+  }
+
+  /**
+   * Обновить сопроводительное письмо в вакансии
+   */
+  async updateCoverLetter(vacancyId: number, coverLetter: string): Promise<boolean> {
+    try {
+      const query = {
+        text: `
+          UPDATE vacancies
+          SET cover_letter = $1
+          WHERE id = $2
+          RETURNING id
+        `,
+        values: [coverLetter, vacancyId],
+      };
+      const result = await pool.query(query);
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (error) {
+      console.error("Error updating cover letter:", error);
+      throw new Error("Error while updating cover letter");
     }
   }
 

@@ -87,3 +87,27 @@ export const markAllVacanciesAsRead = async (req: AuthRequest, res: Response) =>
     return res.status(500).json({ message: "Error while marking all vacancies as read" });
   }
 };
+
+/**
+ * Обновить сопроводительное письмо в вакансии
+ */
+export const updateCoverLetter = async (req: AuthRequest, res: Response) => {
+  try {
+    const { vacancyId } = req.params;
+    const { coverLetter } = req.body;
+
+    if (!coverLetter || typeof coverLetter !== "string") {
+      return res.status(400).json({ message: "coverLetter is required" });
+    }
+
+    const updated = await vacancyService.updateCoverLetter(Number(vacancyId), coverLetter);
+    if (!updated) {
+      return res.status(404).json({ message: "Vacancy not found" });
+    }
+
+    return res.json({ message: "Cover letter updated successfully" });
+  } catch (error) {
+    logger.error("Error updating cover letter: " + error);
+    return res.status(500).json({ message: "Error while updating cover letter" });
+  }
+};
