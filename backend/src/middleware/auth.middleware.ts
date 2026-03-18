@@ -7,7 +7,7 @@ import { AuthRequest } from "@/types/authRequest";
 export const authMiddleware = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     let token: string | undefined;
@@ -33,7 +33,7 @@ export const authMiddleware = async (
     // Добавляем userId в request
     req.userId = decoded.userId;
 
-    logger.info(`Token verified for userId: ${decoded.userId}`);
+    // logger.info(`Token verified for userId: ${decoded.userId}`);
 
     return next();
   } catch (error) {

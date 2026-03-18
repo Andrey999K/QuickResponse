@@ -4,6 +4,10 @@ import type { AnyNode } from "domhandler";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
 import { Search } from "@/modules/search/search.types";
 import { logger } from "@/utils/log";
+import { NotificationService } from "@/modules/notifications/notification.service";
+import { TelegramService } from "./telegram.service";
+import { sseService } from "./sse.service";
+import { pool } from "@/config/db/connection";
 
 /**
  * Результат парсинга одной вакансии
@@ -30,9 +34,11 @@ export class ParserService {
   private readonly USER_AGENT =
     "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
 
-  constructor(private readonly vacancyService: VacancyService) {
-    this.vacancyService = vacancyService;
-  }
+  constructor(
+    private readonly vacancyService: VacancyService,
+    private readonly notificationService: NotificationService,
+    private readonly telegramService: TelegramService,
+  ) {}
 
   /**
    * Парсинг вакансий по параметрам поиска
@@ -85,7 +91,6 @@ export class ParserService {
       // Парсим несколько страниц
       for (let page = 0; page < maxPages; page++) {
         const pageUrl = page === 0 ? baseUrl : `${baseUrl}&page=${page}`;
-        logger.info(`[Parser] Парсинг страницы ${page + 1}/${maxPages}: ${pageUrl}`);
 
         try {
           const response = await axios.get(pageUrl, {
@@ -96,8 +101,6 @@ export class ParserService {
             },
             timeout: 15000,
           });
-
-          logger.info(`[Parser] Страница ${page + 1}: статус ${response.status}`);
 
           const $page = cheerio.load(response.data);
           const vacancies: ParsedVacancy[] = [];
@@ -112,8 +115,7 @@ export class ParserService {
 
           // 2. Парсим вакансии из JSON данных (hh.ru хранит данные в script тегах)
           const jsonVacancies = this.parseVacanciesFromJson(response.data);
-          logger.info(`[Parser] Страница ${page + 1}: найдено ${jsonVacancies.length} вакансий в JSON`);
-          
+
           // Добавляем вакансии из JSON, исключая дубликаты по hhId
           const existingIds = new Set(vacancies.map((v) => v.hhId));
           for (const jsonVacancy of jsonVacancies) {
@@ -123,16 +125,12 @@ export class ParserService {
             }
           }
 
-          logger.info(`[Parser] Страница ${page + 1}: найдено ${vacancies.length} вакансий (вёрстка + JSON)`);
-
           if (vacancies.length === 0) {
-            logger.info(`[Parser] Больше нет вакансий, завершаем на странице ${page + 1}`);
             break;
           }
 
           // Фильтруем по excluded_text
           const filteredVacancies = this.filterByExcludedText(vacancies, search.excluded_text);
-          logger.info(`[Parser] После фильтрации: ${filteredVacancies.length} вакансий`);
 
           // Сохраняем вакансии
           let savedCount = 0;
@@ -156,8 +154,7 @@ export class ParserService {
               savedCount++;
             }
           }
-          
-          logger.info(`[Parser] Сохранено новых вакансий: ${savedCount}`);
+
           newCount += savedCount;
           totalCount += filteredVacancies.length;
 
@@ -168,19 +165,48 @@ export class ParserService {
         } catch (pageError) {
           const axiosError = pageError as AxiosError;
           logger.error(`[Parser] Ошибка при парсинге страницы ${page + 1}: ${axiosError.message}`);
-          
+
           // Если это 429 (Too Many Requests), прекращаем парсинг
           if (axiosError.status === 429) {
             logger.warn(`[Parser] hh.ru блокирует запросы (429). Прекращаем парсинг после страницы ${page + 1}`);
             break;
           }
-          
+
           // Продолжаем парсинг следующих страниц, если это не критическая ошибка
           logger.warn(`[Parser] Продолжаем парсинг следующей страницы...`);
         }
       }
 
       logger.info(`[Parser] Завершено. Всего найдено: ${totalCount}, Новых: ${newCount}`);
+
+      // Если есть новые вакансии — отправляем уведомление
+      if (newCount > 0) {
+        try {
+          // Создаём in-app уведомление
+          await this.notificationService.notifyNewVacancies(
+            search.user_id,
+            search.title,
+            newCount,
+          );
+
+          // Отправляем SSE уведомление подключённым клиентам
+          const notification = {
+            id: Date.now(),
+            title: `Новые вакансии по поиску "${search.title}"`,
+            message: `Найдено ${newCount} новых вакансий`,
+            type: 'vacancy' as const,
+            created_at: new Date(),
+          };
+          sseService.sendNotification(search.user_id, notification);
+
+          // Отправляем Telegram уведомление (если подключено)
+          await this.sendTelegramNotification(search.user_id, search.title, newCount);
+
+          logger.info(`[Parser] Уведомление отправлено пользователю ${search.user_id}`);
+        } catch (notificationError) {
+          logger.error(`[Parser] Ошибка отправки уведомления: ${(notificationError as Error).message}`);
+        }
+      }
 
       return {
         newCount,
@@ -440,5 +466,42 @@ export class ParserService {
       more_than_6: "moreThan6",
     };
     return mapping[experience] || experience;
+  }
+
+  /**
+   * Отправить Telegram уведомление пользователю
+   */
+  private async sendTelegramNotification(
+    userId: number,
+    searchTitle: string,
+    newCount: number,
+  ): Promise<void> {
+    try {
+      // Получаем пользователя из БД
+      const userResult = await pool.query({
+        text: `
+          SELECT telegram_id, telegram_notifications_enabled
+          FROM users
+          WHERE id = $1
+        `,
+        values: [userId],
+      });
+
+      const user = userResult.rows[0];
+
+      if (!user || !user.telegram_id || !user.telegram_notifications_enabled) {
+        logger.debug(`[Parser] Telegram уведомления не подключены для пользователя ${userId}`);
+        return;
+      }
+
+      // Отправляем уведомление
+      await this.telegramService.notifyNewVacancies(
+        user.telegram_id,
+        searchTitle,
+        newCount,
+      );
+    } catch (error) {
+      logger.error(`[Parser] Ошибка отправки Telegram уведомления: ${(error as Error).message}`);
+    }
   }
 }

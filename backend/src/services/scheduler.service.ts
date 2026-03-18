@@ -2,6 +2,8 @@ import cron from "node-cron";
 import type { ScheduledTask } from "node-cron";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
 import { ParserService } from "./parser.service";
+import { NotificationService } from "@/modules/notifications/notification.service";
+import { TelegramService } from "./telegram.service";
 import { logger } from "@/utils/log";
 import { pool } from "@/config/db/connection";
 
@@ -13,8 +15,12 @@ export class SchedulerService {
   private readonly runningTasks: Set<number> = new Set(); // Отслеживаем выполняющиеся задачи
   private readonly parserService: ParserService;
 
-  constructor(vacancyService: VacancyService) {
-    this.parserService = new ParserService(vacancyService);
+  constructor(
+    vacancyService: VacancyService,
+    notificationService: NotificationService,
+    telegramService: TelegramService,
+  ) {
+    this.parserService = new ParserService(vacancyService, notificationService, telegramService);
   }
 
   /**

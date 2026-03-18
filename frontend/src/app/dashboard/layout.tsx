@@ -8,7 +8,10 @@ import Link from "next/link";
 import { Logo } from "@/components/UI/Logo";
 import { SidebarLink } from "@/components/UI/SidebarLink";
 import { UserMenu } from "@/components/UI/UserMenu";
+import { NotificationBell } from "@/components/UI/NotificationBell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useUnreadNotifications } from "@/hooks/useNotificationApi";
+import { useSSENotifications } from "@/hooks/useSSENotifications";
 import { PageLoader } from "@/components/common/PageLoader";
 import { redirect } from "next/navigation";
 
@@ -18,6 +21,10 @@ type DashboardLayoutProps = {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, loading } = useCurrentUser();
+  const { unreadCount } = useUnreadNotifications();
+  
+  // Подключаем SSE для real-time уведомлений
+  useSSENotifications(true);
 
   if (loading) return <PageLoader />;
 
@@ -58,6 +65,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {/* Хедер */}
         <Card className="w-full !bg-gray-50 dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 flex justify-end">
           <div className="flex gap-2 items-center">
+            {/* Уведомления */}
+            <NotificationBell unreadCount={unreadCount} />
+
             <Link
               href={{ pathname: "/dashboard/profile" }}
               className="flex items-center gap-2 !text-black dark:!text-white"
