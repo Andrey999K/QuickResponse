@@ -7,7 +7,8 @@ import { env } from "@/config/env";
  * Контроллер для работы с Telegram
  */
 export class TelegramController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) {
+  }
 
   /**
    * Получить статус подключения Telegram
@@ -28,7 +29,7 @@ export class TelegramController {
         return;
       }
 
-      const botUsername = env.TELEGRAM_BOT_USERNAME || "QuickResponseBot";
+      const botUsername = env.TELEGRAM_BOT_USERNAME || "MyQuickResponseBot";
 
       res.json({
         data: {

@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import "dotenv/config";
 
 export const env = {
   NODE_ENV: process.env.NODE_ENV,
@@ -10,6 +10,6 @@ export const env = {
   DB_NAME: process.env.DB_NAME!,
   CORS_ORIGIN: process.env.CORS_ORIGIN!,
   JWT_SECRET: process.env.JWT_SECRET!,
-  TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '',
-  TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME || 'QuickResponseBot',
+  TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || "",
+  TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME || "MyQuickResponseBot",
 };
