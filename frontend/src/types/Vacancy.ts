@@ -12,6 +12,7 @@ export interface IVacancy {
   employment: string | null;
   experience: string | null;
   description: string | null;
+  cover_letter: string | null;
   is_new: boolean;
   created_at: string;
 }

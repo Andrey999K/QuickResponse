@@ -4,6 +4,23 @@ import { env } from "@/config/env";
 import { UserService } from "@/modules/users/user.service";
 
 /**
+ * Тип вакансии из парсера
+ */
+interface ParsedVacancy {
+  hhId: string;
+  title: string;
+  company: string | null;
+  salary: number | null;
+  currency: string;
+  url: string;
+  area: number | null;
+  schedule: string | null;
+  employment: string | null;
+  experience: string | null;
+  description: string | null;
+}
+
+/**
  * Сервис для работы с Telegram Bot API
  */
 export class TelegramService {
@@ -47,7 +64,7 @@ export class TelegramService {
   }
 
   /**
-   * Отправить уведомление о новых вакансиях
+   * Отправить уведомление о новых вакансиях (старый метод, оставлен для совместимости)
    */
   async notifyNewVacancies(
     telegramId: string,
@@ -59,6 +76,54 @@ export class TelegramService {
       `Новые вакансии по поиску "${searchTitle}"`,
       `Найдено ${newCount} новых вакансий`,
     );
+  }
+
+  /**
+   * Отправить сообщение об одной вакансии с подробной информацией
+   */
+  async sendVacancyMessage(
+    telegramId: string,
+    searchTitle: string,
+    vacancy: ParsedVacancy & { coverLetter?: string | null },
+  ): Promise<boolean> {
+    if (!this.bot) {
+      logger.warn("[Telegram] Бот не инициализирован, пропускаем отправку");
+      return false;
+    }
+
+    try {
+      // Форматируем зарплату
+      let salaryText = "не указана";
+      if (vacancy.salary) {
+        const currencySymbol = vacancy.currency === "RUR" ? "₽" : vacancy.currency;
+        salaryText = `от ${vacancy.salary.toLocaleString("ru-RU")} ${currencySymbol}`;
+      }
+
+      // Форматируем сообщение
+      let message = `🔔 *Новая вакансия по поиску "${searchTitle}"*\n\n` +
+        `*${vacancy.title}*\n` +
+        `🏢 *Компания:* ${vacancy.company || "Не указана"}\n` +
+        `💰 *Зарплата:* ${salaryText}\n` +
+        `📍 *Формат работы:* ${vacancy.schedule || "Не указан"}\n\n`;
+
+      // Добавляем сопроводительное письмо если есть (в блоке кода)
+      if (vacancy.coverLetter) {
+        message += `✉️ *Сопроводительное письмо:*\n\`\`\`${vacancy.coverLetter}\`\`\`\n\n`;
+      }
+
+      message += `[📄 Открыть вакансию](${vacancy.url})`;
+
+      await this.bot.sendMessage(telegramId, message, {
+        parse_mode: "Markdown",
+        disable_web_page_preview: false,
+      });
+
+      logger.info(`[Telegram] Сообщение о вакансии отправлено пользователю ${telegramId}`);
+      return true;
+    } catch (error) {
+      logger.error(`[Telegram] Ошибка отправки сообщения о вакансии: ${(error as Error).message}`);
+      return false;
+    }
   }
 
   /**

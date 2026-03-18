@@ -6,6 +6,7 @@ import { NotificationService } from "@/modules/notifications/notification.servic
 import { TelegramService } from "./telegram.service";
 import { logger } from "@/utils/log";
 import { pool } from "@/config/db/connection";
+import { AIService } from "@/modules/ai/ai.service";
 
 /**
  * Сервис для планирования задач парсинга
@@ -20,7 +21,8 @@ export class SchedulerService {
     notificationService: NotificationService,
     telegramService: TelegramService,
   ) {
-    this.parserService = new ParserService(vacancyService, notificationService, telegramService);
+    const aiService = new AIService();
+    this.parserService = new ParserService(vacancyService, notificationService, telegramService, aiService);
   }
 
   /**
