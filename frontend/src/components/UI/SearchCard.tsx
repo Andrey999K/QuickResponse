@@ -1,4 +1,4 @@
-import { Card, Tag, Button } from "antd";
+import { Button, Card, Tag } from "antd";
 import { ReactNode } from "react";
 import { ISearch } from "@/types/Search";
 import { getAreaNamesByIds } from "@/utils/areaNames";
@@ -39,7 +39,7 @@ export const SearchCard = ({ data, onDelete }: SearchCardProps) => {
   // const getValueById = (mass: { id: string; name: string }[], id: string) => {
   //   return mass.find((item: { id: string }) => item.id === id)?.name;
   // };
-  console.log("data", data);
+  // console.log("data", data);
 
   return (
     <Card

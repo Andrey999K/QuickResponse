@@ -3,6 +3,7 @@ import type { ScheduledTask } from "node-cron";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
 import { ParserService } from "./parser.service";
 import { NotificationService } from "@/modules/notifications/notification.service";
+import { TelegramService } from "./telegram.service";
 import { logger } from "@/utils/log";
 import { pool } from "@/config/db/connection";
 
@@ -17,8 +18,9 @@ export class SchedulerService {
   constructor(
     vacancyService: VacancyService,
     notificationService: NotificationService,
+    telegramService: TelegramService,
   ) {
-    this.parserService = new ParserService(vacancyService, notificationService);
+    this.parserService = new ParserService(vacancyService, notificationService, telegramService);
   }
 
   /**

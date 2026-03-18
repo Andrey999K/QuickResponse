@@ -5,7 +5,9 @@ import { VacancyService } from "@/modules/vacancies/vacancy.service";
 import { Search } from "@/modules/search/search.types";
 import { logger } from "@/utils/log";
 import { NotificationService } from "@/modules/notifications/notification.service";
+import { TelegramService } from "./telegram.service";
 import { sseService } from "./sse.service";
+import { pool } from "@/config/db/connection";
 
 /**
  * Результат парсинга одной вакансии
@@ -35,6 +37,7 @@ export class ParserService {
   constructor(
     private readonly vacancyService: VacancyService,
     private readonly notificationService: NotificationService,
+    private readonly telegramService: TelegramService,
   ) {}
 
   /**
@@ -195,6 +198,9 @@ export class ParserService {
             created_at: new Date(),
           };
           sseService.sendNotification(search.user_id, notification);
+
+          // Отправляем Telegram уведомление (если подключено)
+          await this.sendTelegramNotification(search.user_id, search.title, newCount);
 
           logger.info(`[Parser] Уведомление отправлено пользователю ${search.user_id}`);
         } catch (notificationError) {
@@ -460,5 +466,42 @@ export class ParserService {
       more_than_6: "moreThan6",
     };
     return mapping[experience] || experience;
+  }
+
+  /**
+   * Отправить Telegram уведомление пользователю
+   */
+  private async sendTelegramNotification(
+    userId: number,
+    searchTitle: string,
+    newCount: number,
+  ): Promise<void> {
+    try {
+      // Получаем пользователя из БД
+      const userResult = await pool.query({
+        text: `
+          SELECT telegram_id, telegram_notifications_enabled
+          FROM users
+          WHERE id = $1
+        `,
+        values: [userId],
+      });
+
+      const user = userResult.rows[0];
+
+      if (!user || !user.telegram_id || !user.telegram_notifications_enabled) {
+        logger.debug(`[Parser] Telegram уведомления не подключены для пользователя ${userId}`);
+        return;
+      }
+
+      // Отправляем уведомление
+      await this.telegramService.notifyNewVacancies(
+        user.telegram_id,
+        searchTitle,
+        newCount,
+      );
+    } catch (error) {
+      logger.error(`[Parser] Ошибка отправки Telegram уведомления: ${(error as Error).message}`);
+    }
   }
 }

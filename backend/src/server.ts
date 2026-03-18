@@ -15,10 +15,13 @@ import { userRoutes } from "@/modules/users/user.routes";
 import { searchRoutes } from "@/modules/search/search.routes";
 import { vacancyRoutes } from "@/modules/vacancies/vacancy.routes";
 import { notificationRoutes } from "@/modules/notifications/notification.routes";
+import { telegramRoutes } from "@/modules/telegram/telegram.routes";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
 import { NotificationService } from "@/modules/notifications/notification.service";
+import { UserService } from "@/modules/users/user.service";
 import { SchedulerService } from "@/services/scheduler.service";
 import { sseService } from "@/services/sse.service";
+import { createTelegramService } from "@/services/telegram.service";
 import { AuthRequest } from "@/types/authRequest";
 
 // Глобальный экземпляр планировщика
@@ -59,13 +62,14 @@ async function main() {
     app.use("/api/search", authMiddleware, searchRoutes);
     app.use("/api/vacancies", authMiddleware, vacancyRoutes);
     app.use("/api/notifications", authMiddleware, notificationRoutes);
+    app.use("/api/telegram", authMiddleware, telegramRoutes);
 
     // SSE endpoint для уведомлений
     // GET /api/sse/notifications
     app.get("/api/sse/notifications", (req: AuthRequest, res) => {
       // Логируем запрос для отладки
-      logger.info(`[SSE] Request received. Cookies: ${JSON.stringify(req.cookies)}`);
-      
+      // logger.info(`[SSE] Request received. Cookies: ${JSON.stringify(req.cookies)}`);
+
       // Проверяем токен вручную (без middleware)
       const token: string | undefined = req.cookies?.authToken;
 
@@ -98,7 +102,10 @@ async function main() {
     // Инициализируем планировщик задач
     const vacancyService = new VacancyService();
     const notificationService = new NotificationService();
-    schedulerService = new SchedulerService(vacancyService, notificationService);
+    const userService = new UserService();
+    const telegramService = createTelegramService(userService);
+    
+    schedulerService = new SchedulerService(vacancyService, notificationService, telegramService);
     await schedulerService.initialize();
 
     // Graceful shutdown
