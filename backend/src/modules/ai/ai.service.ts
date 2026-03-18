@@ -46,7 +46,7 @@ export class AIService {
 
     try {
       const completion = await this.client.chat.completions.create({
-        model: "google/gemini-2.0-flash-lite", // Бесплатная модель Gemini Lite
+        model: "google/gemini-2.5-flash-lite-preview-09-2025", // Бесплатная модель Gemini 2.5 Flash Lite
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
