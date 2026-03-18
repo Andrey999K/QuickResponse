@@ -43,7 +43,7 @@ export const MenuSearch = ({ userId, searchId, title, onDelete }: MenuSearchProp
 
   return (
     <div className="cursor-pointer">
-      <Dropdown menu={{ items }}>
+      <Dropdown menu={{ items }} trigger={["click"]}>
         <MoreVertical size={24} />
       </Dropdown>
     </div>
