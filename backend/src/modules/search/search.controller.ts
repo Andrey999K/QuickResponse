@@ -118,6 +118,13 @@ export const deleteSearch = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: "Search not found" });
     }
 
+    // Уведомляем планировщик об удалении поиска
+    const scheduler = getSchedulerService();
+    if (scheduler) {
+      scheduler.removeSearch(Number(id));
+      logger.info(`[Search] Поиск ID: ${id} удалён из планировщика`);
+    }
+
     return res.json({ message: "Search deleted successfully" });
   } catch (error) {
     logger.error("Error deleting search: " + error);

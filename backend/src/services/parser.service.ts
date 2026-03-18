@@ -136,18 +136,25 @@ export class ParserService {
           const filteredVacancies = this.filterByExcludedText(vacancies, search.excluded_text);
 
           // Сохраняем вакансии и собираем новые
-          // Генерируем AI сопроводительные письма только для первых 2 вакансий (тест)
+          // Генерируем AI сопроводительные письма только для первых 2 НОВЫХ вакансий
           let aiGeneratedCount = 0;
           const AI_GENERATION_LIMIT = 2;
 
           for (const vacancy of filteredVacancies) {
-            let coverLetter: string | null = null;
+            // Сначала проверяем, существует ли уже такая вакансия
+            const existing = await this.vacancyService.getVacancyByHhId(search.id, vacancy.hhId);
 
-            // Генерируем сопроводительное письмо для первых 2 вакансий
+            if (existing) {
+              // Вакансия уже есть в базе, пропускаем
+              continue;
+            }
+
+            // Вакансия новая, генерируем сопроводительное письмо (если не превышен лимит)
+            let coverLetter: string | null = null;
             if (aiGeneratedCount < AI_GENERATION_LIMIT) {
               try {
                 logger.info(`[Parser] Генерация сопроводительного письма для вакансии "${vacancy.title}" (${aiGeneratedCount + 1}/${AI_GENERATION_LIMIT})`);
-                
+
                 coverLetter = await this.aiService.generateCoverLetter({
                   vacancyTitle: vacancy.title,
                   company: vacancy.company ?? null,
@@ -163,6 +170,7 @@ export class ParserService {
               }
             }
 
+            // Создаём вакансию с сопроводительным письмом
             const created = await this.vacancyService.createVacancy(
               search.id,
               vacancy.hhId,

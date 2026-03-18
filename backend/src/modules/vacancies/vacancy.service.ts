@@ -74,6 +74,29 @@ export class VacancyService {
   }
 
   /**
+   * Получить вакансию по hh_id и search_id (для проверки на дубликат)
+   */
+  async getVacancyByHhId(searchId: number, hhId: string): Promise<Vacancy | null> {
+    try {
+      const query = {
+        text: `
+          SELECT id, search_id, hh_id, title, company, salary,
+                 currency, url, area, schedule, employment, experience,
+                 description, cover_letter, is_new, created_at
+          FROM vacancies
+          WHERE search_id = $1 AND hh_id = $2
+        `,
+        values: [searchId, hhId],
+      };
+      const result = await pool.query(query);
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error("Error fetching vacancy by hh_id:", error);
+      throw new Error("Error while fetching vacancy by hh_id");
+    }
+  }
+
+  /**
    * Создать новую вакансию
    */
   async createVacancy(
