@@ -84,7 +84,7 @@ export class TelegramService {
   async sendVacancyMessage(
     telegramId: string,
     searchTitle: string,
-    vacancy: ParsedVacancy,
+    vacancy: ParsedVacancy & { coverLetter?: string | null },
   ): Promise<boolean> {
     if (!this.bot) {
       logger.warn("[Telegram] Бот не инициализирован, пропускаем отправку");
@@ -100,12 +100,18 @@ export class TelegramService {
       }
 
       // Форматируем сообщение
-      const message = `🔔 *Новая вакансия по поиску "${searchTitle}"*\n\n` +
+      let message = `🔔 *Новая вакансия по поиску "${searchTitle}"*\n\n` +
         `*${vacancy.title}*\n` +
         `🏢 *Компания:* ${vacancy.company || "Не указана"}\n` +
         `💰 *Зарплата:* ${salaryText}\n` +
-        `📍 *Формат работы:* ${vacancy.schedule || "Не указан"}\n\n` +
-        `[📄 Открыть вакансию](${vacancy.url})`;
+        `📍 *Формат работы:* ${vacancy.schedule || "Не указан"}\n\n`;
+
+      // Добавляем сопроводительное письмо если есть (в блоке кода)
+      if (vacancy.coverLetter) {
+        message += `✉️ *Сопроводительное письмо:*\n\`\`\`${vacancy.coverLetter}\`\`\`\n\n`;
+      }
+
+      message += `[📄 Открыть вакансию](${vacancy.url})`;
 
       await this.bot.sendMessage(telegramId, message, {
         parse_mode: "Markdown",

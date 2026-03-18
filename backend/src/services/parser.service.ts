@@ -8,6 +8,7 @@ import { NotificationService } from "@/modules/notifications/notification.servic
 import { TelegramService } from "./telegram.service";
 import { sseService } from "./sse.service";
 import { pool } from "@/config/db/connection";
+import { AIService } from "@/modules/ai/ai.service";
 
 /**
  * Результат парсинга одной вакансии
@@ -24,6 +25,7 @@ interface ParsedVacancy {
   employment: string | null;
   experience: string | null;
   description: string | null;
+  coverLetter?: string | null;
 }
 
 /**
@@ -38,6 +40,7 @@ export class ParserService {
     private readonly vacancyService: VacancyService,
     private readonly notificationService: NotificationService,
     private readonly telegramService: TelegramService,
+    private readonly aiService: AIService,
   ) {}
 
   /**
@@ -133,7 +136,33 @@ export class ParserService {
           const filteredVacancies = this.filterByExcludedText(vacancies, search.excluded_text);
 
           // Сохраняем вакансии и собираем новые
+          // Генерируем AI сопроводительные письма только для первых 2 вакансий (тест)
+          let aiGeneratedCount = 0;
+          const AI_GENERATION_LIMIT = 2;
+
           for (const vacancy of filteredVacancies) {
+            let coverLetter: string | null = null;
+
+            // Генерируем сопроводительное письмо для первых 2 вакансий
+            if (aiGeneratedCount < AI_GENERATION_LIMIT) {
+              try {
+                logger.info(`[Parser] Генерация сопроводительного письма для вакансии "${vacancy.title}" (${aiGeneratedCount + 1}/${AI_GENERATION_LIMIT})`);
+                
+                coverLetter = await this.aiService.generateCoverLetter({
+                  vacancyTitle: vacancy.title,
+                  company: vacancy.company ?? null,
+                  description: vacancy.description ?? null,
+                  requirements: null,
+                });
+
+                aiGeneratedCount++;
+                logger.info(`[Parser] Сопроводительное письмо сгенерировано (${coverLetter.length} символов)`);
+              } catch (aiError) {
+                logger.error(`[Parser] Ошибка генерации сопроводительного письма: ${(aiError as Error).message}`);
+                // Продолжаем без письма, если AI упал
+              }
+            }
+
             const created = await this.vacancyService.createVacancy(
               search.id,
               vacancy.hhId,
@@ -147,10 +176,11 @@ export class ParserService {
               vacancy.employment,
               vacancy.experience,
               vacancy.description,
+              coverLetter,
             );
 
             if (created) {
-              allNewVacancies.push(vacancy);
+              allNewVacancies.push({ ...vacancy, coverLetter });
             }
           }
 

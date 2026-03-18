@@ -79,6 +79,7 @@ async function createTables() {
       employment VARCHAR(50),
       experience VARCHAR(50),
       description TEXT,
+      cover_letter TEXT,
       is_new BOOLEAN DEFAULT TRUE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(search_id, hh_id)
