@@ -16,6 +16,7 @@ import { searchRoutes } from "@/modules/search/search.routes";
 import { vacancyRoutes } from "@/modules/vacancies/vacancy.routes";
 import { notificationRoutes } from "@/modules/notifications/notification.routes";
 import { telegramRoutes } from "@/modules/telegram/telegram.routes";
+import { aiRoutes } from "@/modules/ai/ai.routes";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
 import { NotificationService } from "@/modules/notifications/notification.service";
 import { UserService } from "@/modules/users/user.service";
@@ -63,6 +64,7 @@ async function main() {
     app.use("/api/vacancies", authMiddleware, vacancyRoutes);
     app.use("/api/notifications", authMiddleware, notificationRoutes);
     app.use("/api/telegram", authMiddleware, telegramRoutes);
+    app.use("/api/ai", authMiddleware, aiRoutes);
 
     // SSE endpoint для уведомлений
     // GET /api/sse/notifications

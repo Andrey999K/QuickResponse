@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Checkbox, Form, Input, Select, SelectProps, Space, message } from "antd";
+import { Button, Checkbox, Form, Input, message, Select, SelectProps, Space } from "antd";
 import { useRouter } from "next/navigation";
 import { Currency } from "@/types/Currency";
 import { Schedule } from "@/types/Schedule";
@@ -25,12 +25,12 @@ type CreateSearchFormProps = {
 };
 
 export const CreateSearchForm = ({
-  currencies,
-  schedules,
-  employment,
-  experiences,
-  areas,
-}: CreateSearchFormProps) => {
+                                   currencies,
+                                   schedules,
+                                   employment,
+                                   experiences,
+                                   areas,
+                                 }: CreateSearchFormProps) => {
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -193,7 +193,7 @@ export const CreateSearchForm = ({
           className="font-bold w-full"
         >
           <Checkbox.Group className="font-normal">
-            <Space direction="vertical">
+            <Space orientation="vertical">
               {schedules.map((schedule) => (
                 <Checkbox key={schedule.id} value={schedule.id}>
                   {schedule.name}
@@ -208,7 +208,7 @@ export const CreateSearchForm = ({
           className="font-bold w-full"
         >
           <Checkbox.Group className="font-normal">
-            <Space direction="vertical">
+            <Space orientation="vertical">
               {employment.map((item) => (
                 <Checkbox key={item.id} value={item.id}>
                   {item.name}
@@ -223,7 +223,7 @@ export const CreateSearchForm = ({
           className="font-bold w-full"
         >
           <Checkbox.Group className="font-normal">
-            <Space direction="vertical">
+            <Space orientation="vertical">
               {experiences.map((experience) => (
                 <Checkbox key={experience.id} value={experience.id}>
                   {experience.name}

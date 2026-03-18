@@ -12,4 +12,5 @@ export const env = {
   JWT_SECRET: process.env.JWT_SECRET!,
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || "",
   TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME || "MyQuickResponseBot",
+  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || "",
 };
