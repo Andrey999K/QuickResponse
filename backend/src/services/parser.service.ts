@@ -85,8 +85,8 @@ export class ParserService {
       const maxPages = Math.min(Math.ceil(estimatedTotal / 50), 25);
       logger.info(`[Parser] Планируется страниц для парсинга: ${maxPages} (из ${Math.ceil(estimatedTotal / 50)})`);
 
-      let newCount = 0;
       let totalCount = 0;
+      const allNewVacancies: ParsedVacancy[] = [];
 
       // Парсим несколько страниц
       for (let page = 0; page < maxPages; page++) {
@@ -132,8 +132,7 @@ export class ParserService {
           // Фильтруем по excluded_text
           const filteredVacancies = this.filterByExcludedText(vacancies, search.excluded_text);
 
-          // Сохраняем вакансии
-          let savedCount = 0;
+          // Сохраняем вакансии и собираем новые
           for (const vacancy of filteredVacancies) {
             const created = await this.vacancyService.createVacancy(
               search.id,
@@ -151,11 +150,10 @@ export class ParserService {
             );
 
             if (created) {
-              savedCount++;
+              allNewVacancies.push(vacancy);
             }
           }
 
-          newCount += savedCount;
           totalCount += filteredVacancies.length;
 
           // Небольшая задержка между страницами (чтобы не блокировали)
@@ -177,6 +175,7 @@ export class ParserService {
         }
       }
 
+      const newCount = allNewVacancies.length;
       logger.info(`[Parser] Завершено. Всего найдено: ${totalCount}, Новых: ${newCount}`);
 
       // Если есть новые вакансии — отправляем уведомление
@@ -200,7 +199,7 @@ export class ParserService {
           sseService.sendNotification(search.user_id, notification);
 
           // Отправляем Telegram уведомление (если подключено)
-          await this.sendTelegramNotification(search.user_id, search.title, newCount);
+          await this.sendTelegramNotification(search.user_id, search.title, allNewVacancies);
 
           logger.info(`[Parser] Уведомление отправлено пользователю ${search.user_id}`);
         } catch (notificationError) {
@@ -470,11 +469,12 @@ export class ParserService {
 
   /**
    * Отправить Telegram уведомление пользователю
+   * Отправляет ОТДЕЛЬНОЕ сообщение на каждую вакансию
    */
   private async sendTelegramNotification(
     userId: number,
     searchTitle: string,
-    newCount: number,
+    newVacancies: ParsedVacancy[],
   ): Promise<void> {
     try {
       // Получаем пользователя из БД
@@ -494,12 +494,14 @@ export class ParserService {
         return;
       }
 
-      // Отправляем уведомление
-      await this.telegramService.notifyNewVacancies(
-        user.telegram_id,
-        searchTitle,
-        newCount,
-      );
+      // Отправляем отдельное сообщение для каждой вакансии
+      for (const vacancy of newVacancies) {
+        await this.telegramService.sendVacancyMessage(
+          user.telegram_id,
+          searchTitle,
+          vacancy,
+        );
+      }
     } catch (error) {
       logger.error(`[Parser] Ошибка отправки Telegram уведомления: ${(error as Error).message}`);
     }
