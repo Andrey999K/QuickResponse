@@ -41,7 +41,43 @@ export class ParserService {
     private readonly notificationService: NotificationService,
     private readonly telegramService: TelegramService,
     private readonly aiService: AIService,
-  ) {}
+  ) {
+  }
+
+  /**
+   * Маппинг строковых значений в параметры hh.ru
+   */
+  static mapScheduleToHh(schedule: string): string {
+    const mapping: Record<string, string> = {
+      full_day: "fullDay",
+      shift: "shift",
+      flexible: "flexible",
+      remote: "remote",
+      rotational: "rotational",
+    };
+    return mapping[schedule] || schedule;
+  }
+
+  static mapEmploymentToHh(employment: string): string {
+    const mapping: Record<string, string> = {
+      full: "full",
+      part: "part",
+      internship: "internship",
+      probation: "probation",
+      project: "project",
+    };
+    return mapping[employment] || employment;
+  }
+
+  static mapExperienceToHh(experience: string): string {
+    const mapping: Record<string, string> = {
+      no_experience: "noExperience",
+      between_1_and_3: "between1And3",
+      between_3_and_6: "between3And6",
+      more_than_6: "moreThan6",
+    };
+    return mapping[experience] || experience;
+  }
 
   /**
    * Парсинг вакансий по параметрам поиска
@@ -71,7 +107,7 @@ export class ParserService {
       // hh.ru обычно показывает что-то вроде "1 234 вакансии" или "Найдено 97 вакансий"
       const h1Text = $("h1").text();
       logger.info(`[Parser] H1 текст: "${h1Text}"`);
-      
+
       const totalText = h1Text;
       const totalMatch = totalText.match(/(\d{1,3}(?:\s?\d{0,3})*)\s*(?:ваканси|вакансия|вакансий)/i);
       let estimatedTotal = 20; // По умолчанию
@@ -231,7 +267,7 @@ export class ParserService {
             id: Date.now(),
             title: `Новые вакансии по поиску "${search.title}"`,
             message: `Найдено ${newCount} новых вакансий`,
-            type: 'vacancy' as const,
+            type: "vacancy" as const,
             created_at: new Date(),
           };
           sseService.sendNotification(search.user_id, notification);
@@ -273,7 +309,7 @@ export class ParserService {
     for (const match of matches) {
       const hhId = match[1];
       const name = match[2]
-        ? match[2].replace(/&quot;/g, '"').replace(/&amp;/g, "&")
+        ? match[2].replace(/&quot;/g, "\"").replace(/&amp;/g, "&")
         : "";
 
       if (!hhId || !name) continue;
@@ -316,7 +352,7 @@ export class ParserService {
           hhId = match[1];
         }
       }
-      
+
       if (!hhId) {
         return null;
       }
@@ -329,15 +365,74 @@ export class ParserService {
       const url = $element.find("a").first().attr("href") || "";
       const fullUrl = url.startsWith("http") ? url : `${this.HH_URL.replace("m.", "")}${url}`;
 
-      // Компания
-      const company =
-        $element.find("[data-qa='vacancy-company'], .vacancy-company, .company").text().trim() || null;
+      // Компания - улучшенный парсинг с точными data-qa селекторами
+      let company: string | null = null;
 
-      // Зарплата
-      const salaryText = $element
-        .find("[data-qa='vacancy-salary'], .vacancy-salary, .salary")
-        .text()
-        .trim();
+      // Используем точный data-qa селектор (class меняется, а data-qa стабильный)
+      const companyEl = $element.find("[data-qa='vacancy-serp__vacancy-employer-text']").first();
+      if (companyEl.length) {
+        company = companyEl.text().trim();
+        logger.info(`[Parser] Компания: "${company}"`);
+      }
+
+      // Если не нашли по data-qa, пробуем запасные варианты
+      if (!company) {
+        const companySelectors = [
+          "[data-qa='vacancy-company']",
+          ".vacancy-company",
+          ".company",
+          ".vacancy-card__company",
+          "[data-qa='vacancy-company-name']",
+          ".search-result__item-company",
+        ];
+
+        for (const selector of companySelectors) {
+          const companyText = $element.find(selector).first().text().trim();
+          if (companyText && companyText.length > 0) {
+            company = companyText;
+            logger.info(`[Parser] Компания (запасной селектор ${selector}): "${company}"`);
+            break;
+          }
+        }
+      }
+
+      // Зарплата - улучшенный парсинг
+      let salaryText = "";
+
+      // Пробуем найти зарплату по разным селекторам
+      const salarySelectors = [
+        "[data-qa='vacancy-salary']",
+        ".vacancy-salary",
+        ".salary",
+        ".vacancy-card__salary",
+        "[data-qa='vacancy-salary-text']",
+      ];
+
+      for (const selector of salarySelectors) {
+        const salaryEl = $element.find(selector).first();
+        if (salaryEl.length) {
+          salaryText = salaryEl.text().trim();
+          logger.info(`[Parser] Зарплата (селектор ${selector}): "${salaryText}"`);
+          break;
+        }
+      }
+
+      // Если не нашли, пробуем найти по классу magritte-text (для mobile версии)
+      if (!salaryText) {
+        // Ищем span с классом magritte-text, который содержит цифры
+        $element.find("span.magritte-text___pbpft_4-5-1").each((_, el) => {
+          const text = $(el).text().trim();
+          if (/\d/.test(text)) { // Проверяем, есть ли цифры
+            salaryText = text;
+            logger.info(`[Parser] Зарплата (magritte-text): "${salaryText}"`);
+          }
+        });
+      }
+
+      if (!salaryText) {
+        logger.warn(`[Parser] Зарплата НЕ найдена`);
+      }
+
       const { salary, currency } = this.parseSalary(salaryText);
 
       // Описание (может быть в отдельном блоке)
@@ -347,10 +442,8 @@ export class ParserService {
       // Местоположение (area) - пока null, можно распарсить позже
       const area = null;
 
-      // График и тип занятости - пока null, можно распарсить позже
-      const schedule = null;
-      const employment = null;
-      const experience = null;
+      // График работы, тип занятости, опыт - парсим из мета-информации
+      const { schedule, employment, experience } = this.parseVacancyMeta($element);
 
       return {
         hhId,
@@ -372,6 +465,115 @@ export class ParserService {
   }
 
   /**
+   * Парсинг мета-информации вакансии (график, занятость, опыт)
+   */
+  private parseVacancyMeta($element: cheerio.Cheerio<AnyNode>): {
+    schedule: string | null;
+    employment: string | null;
+    experience: string | null;
+  } {
+    let schedule: string | null = null;
+    let employment: string | null = null;
+    let experience: string | null = null;
+
+    // Словари для перевода значений
+    const scheduleMap: Record<string, string> = {
+      "удалённая работа": "Удалённая работа",
+      "гибридный формат": "Гибридный формат",
+      "офис": "Офис",
+      "полный день": "Полный день",
+      "сменный график": "Сменный график",
+      "гибкий график": "Гибкий график",
+      "удалёнка": "Удалённая работа",
+      "вахта": "Вахтовый метод",
+      "можно удалённо": "Удалённая работа",
+      "можно работать удалённо": "Удалённая работа",
+    };
+
+    const employmentMap: Record<string, string> = {
+      "полная занятость": "Полная занятость",
+      "частичная занятость": "Частичная занятость",
+      "проектная работа": "Проектная работа",
+      "стажировка": "Стажировка",
+      "подработка": "Подработка",
+    };
+
+    const experienceMap: Record<string, string> = {
+      "без опыта": "Без опыта",
+      "от 1 года": "От 1 года",
+      "от 1 года до 3 лет": "От 1 года до 3 лет",
+      "от 3 до 6 лет": "От 3 до 6 лет",
+      "более 6 лет": "Более 6 лет",
+      "1-3 года": "От 1 года до 3 лет",
+      "3-6 лет": "От 3 до 6 лет",
+    };
+
+    // 1. Ищем формат работы по точному data-qa селектору
+    const scheduleEl = $element.find("[data-qa='vacancy-label-work-schedule-remote']").first();
+    if (scheduleEl.length) {
+      const scheduleText = scheduleEl.text().trim().toLowerCase();
+      // Нормализуем: "Можно удалённо" -> "Удалённая работа"
+      if (scheduleText.includes("удалённо")) {
+        schedule = "Удалённая работа";
+      }
+    }
+
+    // 2. Ищем все элементы с мета-информацией
+    const metaSelectors = [
+      ".vacancy-meta",
+      ".vacancy-snippet-meta",
+      ".vacancy-card__meta",
+      "[data-qa='vacancy-meta']",
+      ".search-result__item-meta",
+    ];
+
+    let metaText = "";
+    for (const selector of metaSelectors) {
+      const metaEl = $element.find(selector).first();
+      if (metaEl.length) {
+        metaText = metaEl.text().trim();
+        break;
+      }
+    }
+
+    // Если не нашли через селекторы, пробуем найти все текстовые элементы
+    if (!metaText) {
+      metaText = $element.text();
+    }
+
+    // Нормализуем текст (приводим к нижнему регистру и убираем лишние пробелы)
+    const normalizedMeta = metaText.toLowerCase().replace(/\s+/g, " ");
+
+    // Если график ещё не найден, ищем в мета-информации
+    if (!schedule) {
+      for (const [key, value] of Object.entries(scheduleMap)) {
+        if (normalizedMeta.includes(key)) {
+          schedule = value;
+          break;
+        }
+      }
+    }
+
+    // Ищем тип занятости
+    for (const [key, value] of Object.entries(employmentMap)) {
+      if (normalizedMeta.includes(key)) {
+        employment = value;
+        break;
+      }
+    }
+
+    // Ищем опыт работы
+    for (const [key, value] of Object.entries(experienceMap)) {
+      if (normalizedMeta.includes(key)) {
+        experience = value;
+        break;
+      }
+    }
+
+    return { schedule, employment, experience };
+  }
+
+  /**
    * Парсинг зарплаты из текста
    */
   private parseSalary(salaryText: string): { salary: number | null; currency: string } {
@@ -379,28 +581,83 @@ export class ParserService {
       return { salary: null, currency: "RUR" };
     }
 
-    // Извлекаем числа из строки типа "от 100 000 до 150 000 руб."
-    const numbers = salaryText.replace(/\s/g, "").match(/\d+/g);
-    let salary: number | null = null;
+    logger.info(`[Parser] parseSalary входной текст: "${salaryText}"`);
 
-    if (numbers && numbers.length > 0) {
-      // Берём среднее между min и max если указано
-      const minSalary = parseInt(numbers[0], 10);
-      const maxSalary = numbers.length > 1 ? parseInt(numbers[1]!, 10) : minSalary;
-      salary = Math.round((minSalary + maxSalary) / 2);
-    }
+    // Нормализуем текст: заменяем все виды пробелов на обычные
+    const normalizedText = salaryText
+      .replace(/[\u00A0\u202F\u2009]/g, " ") // Неразрывные пробелы, thin space
+      .replace(/\s+/g, " ")
+      .trim();
+
+    logger.info(`[Parser] parseSalary нормализованный текст: "${normalizedText}"`);
 
     // Определяем валюту
     let currency = "RUR";
-    if (salaryText.toLowerCase().includes("usd") || salaryText.includes("$")) {
+    const lowerText = normalizedText.toLowerCase();
+
+    if (lowerText.includes("usd") || lowerText.includes("$")) {
       currency = "USD";
-    } else if (salaryText.toLowerCase().includes("eur") || salaryText.includes("€")) {
+    } else if (lowerText.includes("eur") || lowerText.includes("€")) {
       currency = "EUR";
-    } else if (salaryText.toLowerCase().includes("kzt")) {
+    } else if (lowerText.includes("kzt") || lowerText.includes("₸")) {
       currency = "KZT";
-    } else if (salaryText.toLowerCase().includes("byn")) {
+    } else if (lowerText.includes("byn") || lowerText.includes("Br")) {
       currency = "BYN";
+    } else if (lowerText.includes("руб") || lowerText.includes("₽") || lowerText.includes("rub")) {
+      currency = "RUR";
     }
+
+    // logger.info(`[Parser] parseSalary валюта: ${currency}`);
+
+    // Извлекаем числа из текста (с учётом пробелов внутри чисел: "70 000" → 70000)
+    // Собираем последовательности цифр с пробелами как одно число
+    // const allNumbers: number[] = [];
+    // const numberPattern = /\d[\d\s]*\d|\d/g;
+    // const matches = normalizedText.match(numberPattern);
+
+    // logger.info(`[Parser] parseSalary найдены числа (raw matches): ${JSON.stringify(matches)}`);
+
+    // if (matches) {
+    //   for (const match of matches) {
+    //     // Убираем пробелы из числа: "70 000" → "70000"
+    //     const cleanNumber = match.replace(/\s/g, "");
+    //     if (cleanNumber && /^\d+$/.test(cleanNumber)) {
+    //       const num = parseInt(cleanNumber, 10);
+    //       allNumbers.push(num);
+    //       logger.info(`[Parser] parseSalary число: "${match}" → ${num}`);
+    //     }
+    //   }
+    // }
+    //
+    // logger.info(`[Parser] parseSalary allNumbers: ${JSON.stringify(allNumbers)}`);
+    //
+    // if (allNumbers.length === 0) {
+    //   logger.warn(`[Parser] parseSalary чисел не найдено`);
+    //   return { salary: null, currency };
+    // }
+
+    let salary: string | null = normalizedText;
+
+    // // Проверяем на наличие "от" и "до"
+    // const hasFrom = lowerText.includes("от") || lowerText.includes("от ");
+    // const hasTo = lowerText.includes("до") || lowerText.includes("до ") ||
+    //               lowerText.includes(" - ") || lowerText.includes("–") || lowerText.includes("—");
+    //
+    // logger.info(`[Parser] parseSalary hasFrom: ${hasFrom}, hasTo: ${hasTo}`);
+    //
+    // if (allNumbers.length >= 2 && (hasFrom || hasTo)) {
+    //   // Если есть и "от" и "до" - берём среднее между min и max
+    //   const minSalary = allNumbers[0]!;
+    //   const maxSalary = allNumbers[1]!;
+    //   salary = Math.round((minSalary + maxSalary) / 2);
+    //   logger.info(`[Parser] parseSalary среднее: (${minSalary} + ${maxSalary}) / 2 = ${salary}`);
+    // } else if (allNumbers.length >= 1) {
+    //   // Если только одно число или нет уточнений - берём первое число
+    //   salary = allNumbers[0]!;
+    //   logger.info(`[Parser] parseSalary первое число: ${salary}`);
+    // }
+
+    logger.info(`[Parser] parseSalary результат: salary=${salary}, currency=${currency}`);
 
     return { salary, currency };
   }
@@ -468,41 +725,6 @@ export class ParserService {
     params.set("date", "1"); // За последние 1 день
 
     return `${this.HH_URL}/search/vacancy?${params.toString()}`;
-  }
-
-  /**
-   * Маппинг строковых значений в параметры hh.ru
-   */
-  static mapScheduleToHh(schedule: string): string {
-    const mapping: Record<string, string> = {
-      full_day: "fullDay",
-      shift: "shift",
-      flexible: "flexible",
-      remote: "remote",
-      rotational: "rotational",
-    };
-    return mapping[schedule] || schedule;
-  }
-
-  static mapEmploymentToHh(employment: string): string {
-    const mapping: Record<string, string> = {
-      full: "full",
-      part: "part",
-      internship: "internship",
-      probation: "probation",
-      project: "project",
-    };
-    return mapping[employment] || employment;
-  }
-
-  static mapExperienceToHh(experience: string): string {
-    const mapping: Record<string, string> = {
-      no_experience: "noExperience",
-      between_1_and_3: "between1And3",
-      between_3_and_6: "between3And6",
-      more_than_6: "moreThan6",
-    };
-    return mapping[experience] || experience;
   }
 
   /**
