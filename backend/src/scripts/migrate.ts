@@ -6,6 +6,7 @@
 import { pool } from "@/config/db/connection";
 import { logger } from "@/utils/log";
 import { changeVacancySalaryToText } from "@/config/db/migrations/002-change-vacancy-salary-to-text";
+import { createSubscriptionsTables } from "@/config/db/migrations/003-create-subscriptions-tables";
 
 async function migrate() {
   try {
@@ -19,6 +20,9 @@ async function migrate() {
 
     // 3. Изменяем тип поля salary в vacancies на TEXT
     await changeVacancySalaryToText();
+
+    // 4. Создаем таблицы для системы подписок
+    await createSubscriptionsTables();
 
     logger.info("[Migrate] Миграция завершена успешно!");
     process.exit(0);
