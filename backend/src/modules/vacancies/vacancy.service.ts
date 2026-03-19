@@ -104,7 +104,7 @@ export class VacancyService {
     hhId: string,
     title: string,
     company: string | null,
-    salary: number | null,
+    salary: string | null,
     currency: string,
     url: string,
     area: number | null,

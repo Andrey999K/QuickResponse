@@ -10,7 +10,7 @@ interface ParsedVacancy {
   hhId: string;
   title: string;
   company: string | null;
-  salary: number | null;
+  salary: string | null;
   currency: string;
   url: string;
   area: number | null;
@@ -95,8 +95,8 @@ export class TelegramService {
       // Форматируем зарплату
       let salaryText = "не указана";
       if (vacancy.salary) {
-        const currencySymbol = vacancy.currency === "RUR" ? "₽" : vacancy.currency;
-        salaryText = `от ${vacancy.salary.toLocaleString("ru-RU")} ${currencySymbol}`;
+        // vacancy.salary теперь строка с полным текстом (например "35 000 - 70 000 рублей, на руки")
+        salaryText = vacancy.salary;
       }
 
       // Форматируем сообщение

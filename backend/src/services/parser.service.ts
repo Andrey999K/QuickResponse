@@ -17,7 +17,7 @@ interface ParsedVacancy {
   hhId: string;
   title: string;
   company: string | null;
-  salary: number | null;
+  salary: string | null;
   currency: string;
   url: string;
   area: number | null;
@@ -576,7 +576,7 @@ export class ParserService {
   /**
    * Парсинг зарплаты из текста
    */
-  private parseSalary(salaryText: string): { salary: number | null; currency: string } {
+  private parseSalary(salaryText: string): { salary: string | null; currency: string } {
     if (!salaryText) {
       return { salary: null, currency: "RUR" };
     }
@@ -636,7 +636,8 @@ export class ParserService {
     //   return { salary: null, currency };
     // }
 
-    let salary: string | null = normalizedText;
+    // Возвращаем полный текст зарплаты вместо числа
+    const salary: string | null = normalizedText || null;
 
     // // Проверяем на наличие "от" и "до"
     // const hasFrom = lowerText.includes("от") || lowerText.includes("от ");
