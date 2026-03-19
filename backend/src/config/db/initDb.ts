@@ -49,7 +49,7 @@ async function createTables() {
       title VARCHAR(255) NOT NULL,
       keywords TEXT,
       excluded_text TEXT,
-      salary TEXT,
+      salary INTEGER,
       currency VARCHAR(10) DEFAULT 'RUR',
       only_with_salary BOOLEAN DEFAULT FALSE,
       area INTEGER[] DEFAULT '{}',

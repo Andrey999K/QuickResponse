@@ -5,6 +5,7 @@
 
 import { pool } from "@/config/db/connection";
 import { logger } from "@/utils/log";
+import { changeVacancySalaryToText } from "@/config/db/migrations/002-change-vacancy-salary-to-text";
 
 async function migrate() {
   try {
@@ -15,6 +16,9 @@ async function migrate() {
 
     // 2. Создаем таблицу notifications, если её нет
     await createNotificationsTable();
+
+    // 3. Изменяем тип поля salary в vacancies на TEXT
+    await changeVacancySalaryToText();
 
     logger.info("[Migrate] Миграция завершена успешно!");
     process.exit(0);
