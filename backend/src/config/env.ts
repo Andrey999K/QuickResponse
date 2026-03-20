@@ -1,5 +1,8 @@
 import "dotenv/config";
 
+console.log(process.env.ROBOKASSA_TEST_MODE);
+console.log(typeof process.env.ROBOKASSA_TEST_MODE);
+
 export const env = {
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,
@@ -13,4 +16,8 @@ export const env = {
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || "",
   TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME || "MyQuickResponseBot",
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || "",
+  ROBOKASSA_MERCHANT_ID: process.env.ROBOKASSA_MERCHANT_ID || "",
+  ROBOKASSA_SECRET_KEY_1: process.env.ROBOKASSA_SECRET_KEY_1 || "",
+  ROBOKASSA_SECRET_KEY_2: process.env.ROBOKASSA_SECRET_KEY_2 || "",
+  ROBOKASSA_TEST_MODE: process.env.ROBOKASSA_TEST_MODE === "true",
 };
