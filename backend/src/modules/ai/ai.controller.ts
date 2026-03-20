@@ -40,7 +40,7 @@ export class AIController {
   async getAiLimitStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
       const userId = req.userId!;
-      const searchId = parseInt(req.params.searchId, 10);
+      const searchId = parseInt(req.params.searchId as string, 10);
 
       if (isNaN(searchId)) {
         res.status(400).json({

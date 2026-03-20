@@ -5,7 +5,6 @@ import { z } from "zod";
  */
 export const createPaymentDto = z.object({
   tier_id: z.number().int().positive("Tier ID must be positive"),
-  user_id: z.number().int().positive("User ID must be positive"),
 });
 
 /**

@@ -7,6 +7,7 @@ import { pool } from "@/config/db/connection";
 import { logger } from "@/utils/log";
 import { changeVacancySalaryToText } from "@/config/db/migrations/002-change-vacancy-salary-to-text";
 import { createSubscriptionsTables } from "@/config/db/migrations/003-create-subscriptions-tables";
+import { createPaymentsTable } from "@/config/db/migrations/004-create-payments-table";
 import { addSubscriptionLimits } from "@/config/db/migrations/005-add-subscription-limits";
 
 async function migrate() {
@@ -25,7 +26,10 @@ async function migrate() {
     // 4. Создаем таблицы для системы подписок
     await createSubscriptionsTables();
 
-    // 5. Добавляем лимиты для тарифов
+    // 5. Создаем таблицу payments
+    await createPaymentsTable();
+
+    // 6. Добавляем лимиты для тарифов
     await addSubscriptionLimits();
 
     logger.info("[Migrate] Миграция завершена успешно!");

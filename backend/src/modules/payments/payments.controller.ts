@@ -2,12 +2,14 @@ import { Response } from "express";
 import { logger } from "@/utils/log";
 import { PaymentService } from "./payments.service";
 import { SubscriptionService } from "../subscriptions/subscriptions.service";
+import { UserService } from "../users/user.service";
 import { createPaymentDto, robokassaResultDto } from "./payments.dto";
 import { AuthRequest } from "@/types/authRequest";
 import { RobokassaWebhookData } from "./payments.types";
 
 const paymentService = new PaymentService();
 const subscriptionService = new SubscriptionService();
+const userService = new UserService();
 
 /**
  * POST /api/payments/create
@@ -35,15 +37,15 @@ export const createPayment = async (req: AuthRequest, res: Response) => {
     }
 
     // Получаем email пользователя
-    const userSubscription = await subscriptionService.getUserSubscription(userId);
-    const email = userSubscription?.subscription?.created_at ? "" : "";
+    const user = await userService.getUser(userId);
+    const email = user?.email || "user@example.com";
 
     // Создаём платёж
     const payment = await paymentService.createPayment({
       user_id: userId,
       tier_id,
       amount: tier.price,
-      email: email || "user@example.com", // TODO: получить реальный email
+      email,
       description: `Оплата тарифа "${tier.name}"`,
     });
 
