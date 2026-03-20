@@ -5,3 +5,4 @@ dist/
 /QWEN.md
 /TODO.md
 /SESSION_LOG*.md
+.vercel/
