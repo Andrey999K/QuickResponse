@@ -14,6 +14,9 @@ const controller = new AIController(userService, vacancyService, subscriptionSer
 // Все роуты требуют аутентификации
 router.use(authMiddleware);
 
+// GET /api/ai/limit-status/:searchId - Получить статус лимитов AI для поиска
+router.get("/limit-status/:searchId", (req, res) => controller.getAiLimitStatus(req, res));
+
 // POST /api/ai/generate-cover-letter - Сгенерировать сопроводительное письмо
 router.post("/generate-cover-letter", (req, res) => controller.generateCoverLetter(req, res));
 

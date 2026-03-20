@@ -34,6 +34,45 @@ export class AIController {
   }
 
   /**
+   * Получить статус лимитов AI для поиска
+   * GET /api/ai/limit-status/:searchId
+   */
+  async getAiLimitStatus(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.userId!;
+      const searchId = parseInt(req.params.searchId, 10);
+
+      if (isNaN(searchId)) {
+        res.status(400).json({
+          error: {
+            code: "INVALID_REQUEST",
+            message: "Некорректный searchId",
+          },
+        });
+        return;
+      }
+
+      const status = await this.aiLimitService.getAiLimitStatus(userId, searchId);
+
+      res.json({
+        data: {
+          auto: status.auto,
+          manual: status.manual,
+        },
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Неизвестная ошибка";
+
+      res.status(500).json({
+        error: {
+          code: "AI_LIMIT_ERROR",
+          message: errorMessage,
+        },
+      });
+    }
+  }
+
+  /**
    * Сгенерировать сопроводительное письмо
    * POST /api/ai/generate-cover-letter
    */
