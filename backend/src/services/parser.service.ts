@@ -88,8 +88,8 @@ export class ParserService {
   }> {
     try {
       const baseUrl = this.buildSearchUrl(search);
-      logger.info(`[Parser] Начинаем парсинг для поиска "${search.title}" (ID: ${search.id})`);
-      logger.info(`[Parser] Базовый URL: ${baseUrl}`);
+      logger.debug(`[Parser] Начинаем парсинг для поиска "${search.title}" (ID: ${search.id})`);
+      logger.debug(`[Parser] Базовый URL: ${baseUrl}`);
 
       // Сначала получаем первую страницу, чтобы узнать общее количество вакансий
       const firstResponse = await axios.get(baseUrl, {
@@ -106,7 +106,7 @@ export class ParserService {
       // Пытаемся найти общее количество вакансий
       // hh.ru обычно показывает что-то вроде "1 234 вакансии" или "Найдено 97 вакансий"
       const h1Text = $("h1").text();
-      logger.info(`[Parser] H1 текст: "${h1Text}"`);
+      logger.debug(`[Parser] H1 текст: "${h1Text}"`);
 
       const totalText = h1Text;
       const totalMatch = totalText.match(/(\d{1,3}(?:\s?\d{0,3})*)\s*(?:ваканси|вакансия|вакансий)/i);
@@ -114,7 +114,7 @@ export class ParserService {
 
       if (totalMatch && totalMatch[1]) {
         estimatedTotal = parseInt(totalMatch[1].replace(/\s/g, ""), 10);
-        logger.info(`[Parser] Найдено вакансий (по оценке hh.ru): ${estimatedTotal}`);
+        logger.debug(`[Parser] Найдено вакансий (по оценке hh.ru): ${estimatedTotal}`);
       } else {
         logger.warn(`[Parser] Не удалось найти количество вакансий в H1, используем значение по умолчанию: ${estimatedTotal}`);
       }
@@ -122,7 +122,7 @@ export class ParserService {
       // Вычисляем количество страниц (50 вакансий на странице на mobile.hh.ru)
       // Максимум 25 страниц для более полного парсинга (1250 вакансий)
       const maxPages = Math.min(Math.ceil(estimatedTotal / 50), 25);
-      logger.info(`[Parser] Планируется страниц для парсинга: ${maxPages} (из ${Math.ceil(estimatedTotal / 50)})`);
+      logger.debug(`[Parser] Планируется страниц для парсинга: ${maxPages} (из ${Math.ceil(estimatedTotal / 50)})`);
 
       let totalCount = 0;
       const allNewVacancies: ParsedVacancy[] = [];
@@ -189,7 +189,7 @@ export class ParserService {
             let coverLetter: string | null = null;
             if (aiGeneratedCount < AI_GENERATION_LIMIT) {
               try {
-                logger.info(`[Parser] Генерация сопроводительного письма для вакансии "${vacancy.title}" (${aiGeneratedCount + 1}/${AI_GENERATION_LIMIT})`);
+                logger.debug(`[Parser] Генерация сопроводительного письма для вакансии "${vacancy.title}" (${aiGeneratedCount + 1}/${AI_GENERATION_LIMIT})`);
 
                 coverLetter = await this.aiService.generateCoverLetter({
                   vacancyTitle: vacancy.title,
@@ -199,7 +199,7 @@ export class ParserService {
                 });
 
                 aiGeneratedCount++;
-                logger.info(`[Parser] Сопроводительное письмо сгенерировано (${coverLetter.length} символов)`);
+                logger.debug(`[Parser] Сопроводительное письмо сгенерировано (${coverLetter.length} символов)`);
               } catch (aiError) {
                 logger.error(`[Parser] Ошибка генерации сопроводительного письма: ${(aiError as Error).message}`);
                 // Продолжаем без письма, если AI упал
@@ -250,7 +250,7 @@ export class ParserService {
       }
 
       const newCount = allNewVacancies.length;
-      logger.info(`[Parser] Завершено. Всего найдено: ${totalCount}, Новых: ${newCount}`);
+      logger.debug(`[Parser] Завершено. Всего найдено: ${totalCount}, Новых: ${newCount}`);
 
       // Если есть новые вакансии — отправляем уведомление
       if (newCount > 0) {
@@ -275,7 +275,7 @@ export class ParserService {
           // Отправляем Telegram уведомление (если подключено)
           await this.sendTelegramNotification(search.user_id, search.title, allNewVacancies);
 
-          logger.info(`[Parser] Уведомление отправлено пользователю ${search.user_id}`);
+          logger.debug(`[Parser] Уведомление отправлено пользователю ${search.user_id}`);
         } catch (notificationError) {
           logger.error(`[Parser] Ошибка отправки уведомления: ${(notificationError as Error).message}`);
         }
@@ -372,7 +372,7 @@ export class ParserService {
       const companyEl = $element.find("[data-qa='vacancy-serp__vacancy-employer-text']").first();
       if (companyEl.length) {
         company = companyEl.text().trim();
-        logger.info(`[Parser] Компания: "${company}"`);
+        logger.debug(`[Parser] Компания: "${company}"`);
       }
 
       // Если не нашли по data-qa, пробуем запасные варианты
@@ -390,7 +390,7 @@ export class ParserService {
           const companyText = $element.find(selector).first().text().trim();
           if (companyText && companyText.length > 0) {
             company = companyText;
-            logger.info(`[Parser] Компания (запасной селектор ${selector}): "${company}"`);
+            logger.debug(`[Parser] Компания (запасной селектор ${selector}): "${company}"`);
             break;
           }
         }
@@ -412,7 +412,7 @@ export class ParserService {
         const salaryEl = $element.find(selector).first();
         if (salaryEl.length) {
           salaryText = salaryEl.text().trim();
-          logger.info(`[Parser] Зарплата (селектор ${selector}): "${salaryText}"`);
+          logger.debug(`[Parser] Зарплата (селектор ${selector}): "${salaryText}"`);
           break;
         }
       }
@@ -424,7 +424,7 @@ export class ParserService {
           const text = $(el).text().trim();
           if (/\d/.test(text)) { // Проверяем, есть ли цифры
             salaryText = text;
-            logger.info(`[Parser] Зарплата (magritte-text): "${salaryText}"`);
+            logger.debug(`[Parser] Зарплата (magritte-text): "${salaryText}"`);
           }
         });
       }
@@ -581,7 +581,7 @@ export class ParserService {
       return { salary: null, currency: "RUR" };
     }
 
-    logger.info(`[Parser] parseSalary входной текст: "${salaryText}"`);
+    logger.debug(`[Parser] parseSalary входной текст: "${salaryText}"`);
 
     // Нормализуем текст: заменяем все виды пробелов на обычные
     const normalizedText = salaryText
@@ -589,7 +589,7 @@ export class ParserService {
       .replace(/\s+/g, " ")
       .trim();
 
-    logger.info(`[Parser] parseSalary нормализованный текст: "${normalizedText}"`);
+    logger.debug(`[Parser] parseSalary нормализованный текст: "${normalizedText}"`);
 
     // Определяем валюту
     let currency = "RUR";
@@ -658,7 +658,7 @@ export class ParserService {
     //   logger.info(`[Parser] parseSalary первое число: ${salary}`);
     // }
 
-    logger.info(`[Parser] parseSalary результат: salary=${salary}, currency=${currency}`);
+    logger.debug(`[Parser] parseSalary результат: salary=${salary}, currency=${currency}`);
 
     return { salary, currency };
   }

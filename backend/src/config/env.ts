@@ -1,8 +1,5 @@
 import "dotenv/config";
 
-console.log(process.env.ROBOKASSA_TEST_MODE);
-console.log(typeof process.env.ROBOKASSA_TEST_MODE);
-
 export const env = {
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,

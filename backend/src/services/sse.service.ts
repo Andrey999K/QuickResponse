@@ -28,7 +28,7 @@ export class SSEService {
    */
   addClient(userId: number, res: Response): void {
     const existingClients = this.clients.get(userId) || [];
-    
+
     const client: SSEClient = {
       userId,
       response: res,
@@ -38,7 +38,7 @@ export class SSEService {
     existingClients.push(client);
     this.clients.set(userId, existingClients);
 
-    logger.info(`[SSE] Клиент подключён. User ID: ${userId}, всего подключений: ${existingClients.length}`);
+    logger.debug(`[SSE] Клиент подключён. User ID: ${userId}, всего подключений: ${existingClients.length}`);
 
     // Отправляем событие подключения
     this.sendEvent(res, "connected", { message: "Подключение к уведомлениям установлено" });
@@ -64,10 +64,10 @@ export class SSEService {
 
     if (filteredClients.length === 0) {
       this.clients.delete(userId);
-      logger.info(`[SSE] Клиент отключён. User ID: ${userId}`);
+      logger.debug(`[SSE] Клиент отключён. User ID: ${userId}`);
     } else {
       this.clients.set(userId, filteredClients);
-      logger.info(`[SSE] Клиент отключён. User ID: ${userId}, осталось подключений: ${filteredClients.length}`);
+      logger.debug(`[SSE] Клиент отключён. User ID: ${userId}, осталось подключений: ${filteredClients.length}`);
     }
   }
 
@@ -82,7 +82,7 @@ export class SSEService {
     created_at: Date;
   }): void {
     const clients = this.clients.get(userId);
-    
+
     if (!clients || clients.length === 0) {
       logger.debug(`[SSE] Нет активных подключений для User ID: ${userId}`);
       return;
@@ -97,7 +97,18 @@ export class SSEService {
       }
     }
 
-    logger.info(`[SSE] Уведомление отправлено. User ID: ${userId}, успешно: ${successCount}/${clients.length}`);
+    logger.debug(`[SSE] Уведомление отправлено. User ID: ${userId}, успешно: ${successCount}/${clients.length}`);
+  }
+
+  /**
+   * Получить количество подключений
+   */
+  getConnectionCount(): number {
+    let count = 0;
+    for (const clients of this.clients.values()) {
+      count += clients.length;
+    }
+    return count;
   }
 
   /**
@@ -140,17 +151,6 @@ export class SSEService {
         this.clients.set(userId, activeClients);
       }
     }
-  }
-
-  /**
-   * Получить количество подключений
-   */
-  getConnectionCount(): number {
-    let count = 0;
-    for (const clients of this.clients.values()) {
-      count += clients.length;
-    }
-    return count;
   }
 }
 
