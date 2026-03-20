@@ -3,7 +3,7 @@
     /* Language and Environment */
     "target": "ES2022",                                  /* Set the JavaScript language version for emitted JavaScript */
     "lib": ["ES2022"],                                   /* Specify library files to be included */
-    "module": "Node16",                                  /* Specify what module code is generated */
+    "module": "ES2022",                                  /* Specify what module code is generated */
     "moduleResolution": "bundler",                        /* Specify how TypeScript resolves modules */
     
     /* Emit */
@@ -28,7 +28,11 @@
     "noFallthroughCasesInSwitch": true,                  /* Enable error reporting for fallthrough cases in switch statements */
     "noUncheckedIndexedAccess": true,                    /* Add 'undefined' to a type when accessed using an index */
     "exactOptionalPropertyTypes": true,                  /* Differentiate between undefined and not present */
-    
+
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Completeness */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files */
   },
