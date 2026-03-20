@@ -3,12 +3,15 @@ import { AuthRequest } from "@/types/authRequest";
 import { aiService } from "./ai.service";
 import { UserService } from "@/modules/users/user.service";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
+import { AiLimitService } from "@/services/ai-limit.service";
+import { SubscriptionService } from "@/modules/subscriptions/subscriptions.service";
 
 /**
  * Запрос на генерацию сопроводительного письма
  */
 interface GenerateCoverLetterRequest {
   vacancyId?: number;
+  searchId?: number;
   vacancyTitle: string;
   company?: string | null;
   description?: string | null;
@@ -20,10 +23,15 @@ interface GenerateCoverLetterRequest {
  * Контроллер для работы с AI
  */
 export class AIController {
+  private readonly aiLimitService: AiLimitService;
+
   constructor(
     private readonly userService: UserService,
-    private readonly vacancyService: VacancyService
-  ) {}
+    private readonly vacancyService: VacancyService,
+    subscriptionService: SubscriptionService,
+  ) {
+    this.aiLimitService = new AiLimitService(subscriptionService);
+  }
 
   /**
    * Сгенерировать сопроводительное письмо
@@ -45,6 +53,27 @@ export class AIController {
         return;
       }
 
+      // Проверяем лимит AI (ручная генерация)
+      if (body.searchId) {
+        const limitCheck = await this.aiLimitService.checkAiLimit(
+          userId,
+          body.searchId,
+          true, // isManual = true для ручной генерации
+        );
+
+        if (!limitCheck.allowed) {
+          res.status(403).json({
+            error: {
+              code: "AI_LIMIT_EXCEEDED",
+              message: limitCheck.reason,
+              remaining: limitCheck.remaining,
+              limit: limitCheck.limit,
+            },
+          });
+          return;
+        }
+      }
+
       // Получаем данные пользователя для персонализации
       const user = await this.userService.getUserById(userId);
 
@@ -61,6 +90,11 @@ export class AIController {
       // Если указан vacancyId, сохраняем письмо в БД
       if (body.vacancyId) {
         await this.vacancyService.updateCoverLetter(body.vacancyId, coverLetter);
+      }
+
+      // Увеличиваем счётчик AI генераций если указан searchId
+      if (body.searchId) {
+        await this.aiLimitService.incrementAiCounter(body.searchId);
       }
 
       res.json({

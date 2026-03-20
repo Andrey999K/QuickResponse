@@ -9,6 +9,8 @@ import { TelegramService } from "./telegram.service";
 import { sseService } from "./sse.service";
 import { pool } from "@/config/db/connection";
 import { AIService } from "@/modules/ai/ai.service";
+import { AiLimitService } from "./ai-limit.service";
+import { SubscriptionService } from "@/modules/subscriptions/subscriptions.service";
 
 /**
  * Результат парсинга одной вакансии
@@ -36,12 +38,16 @@ export class ParserService {
   private readonly USER_AGENT =
     "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
 
+  private readonly aiLimitService: AiLimitService;
+
   constructor(
     private readonly vacancyService: VacancyService,
     private readonly notificationService: NotificationService,
     private readonly telegramService: TelegramService,
     private readonly aiService: AIService,
   ) {
+    const subscriptionService = new SubscriptionService();
+    this.aiLimitService = new AiLimitService(subscriptionService);
   }
 
   /**
@@ -172,9 +178,8 @@ export class ParserService {
           const filteredVacancies = this.filterByExcludedText(vacancies, search.excluded_text);
 
           // Сохраняем вакансии и собираем новые
-          // Генерируем AI сопроводительные письма только для первых 2 НОВЫХ вакансий
+          // Генерируем AI сопроводительные письма только для новых вакансий (с учётом лимита тарифа)
           let aiGeneratedCount = 0;
-          const AI_GENERATION_LIMIT = 2;
 
           for (const vacancy of filteredVacancies) {
             // Сначала проверяем, существует ли уже такая вакансия
@@ -185,11 +190,18 @@ export class ParserService {
               continue;
             }
 
+            // Вакансия новая, проверяем лимит AI генераций
+            const limitCheck = await this.aiLimitService.checkAiLimit(
+              search.user_id,
+              search.id,
+              false, // isManual = false для автоматической генерации
+            );
+
             // Вакансия новая, генерируем сопроводительное письмо (если не превышен лимит)
             let coverLetter: string | null = null;
-            if (aiGeneratedCount < AI_GENERATION_LIMIT) {
+            if (limitCheck.allowed) {
               try {
-                logger.debug(`[Parser] Генерация сопроводительного письма для вакансии "${vacancy.title}" (${aiGeneratedCount + 1}/${AI_GENERATION_LIMIT})`);
+                logger.debug(`[Parser] Генерация сопроводительного письма для вакансии "${vacancy.title}" (${aiGeneratedCount + 1}/${limitCheck.limit})`);
 
                 coverLetter = await this.aiService.generateCoverLetter({
                   vacancyTitle: vacancy.title,
@@ -199,11 +211,15 @@ export class ParserService {
                 });
 
                 aiGeneratedCount++;
-                logger.debug(`[Parser] Сопроводительное письмо сгенерировано (${coverLetter.length} символов)`);
+                // Увеличиваем счётчик AI генераций
+                await this.aiLimitService.incrementAiCounter(search.id);
+                logger.debug(`[Parser] Сопроводительное письмо сгенерировано (${coverLetter.length} символов). Осталось: ${limitCheck.remaining - 1}`);
               } catch (aiError) {
                 logger.error(`[Parser] Ошибка генерации сопроводительного письма: ${(aiError as Error).message}`);
                 // Продолжаем без письма, если AI упал
               }
+            } else {
+              logger.debug(`[Parser] Лимит AI генераций исчерпан (${limitCheck.reason})`);
             }
 
             // Создаём вакансию с сопроводительным письмом

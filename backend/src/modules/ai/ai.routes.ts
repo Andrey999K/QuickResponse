@@ -2,12 +2,14 @@ import { Router } from "express";
 import { AIController } from "./ai.controller";
 import { UserService } from "@/modules/users/user.service";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
+import { SubscriptionService } from "@/modules/subscriptions/subscriptions.service";
 import { authMiddleware } from "@/middleware/auth.middleware";
 
 const router = Router();
 const userService = new UserService();
 const vacancyService = new VacancyService();
-const controller = new AIController(userService, vacancyService);
+const subscriptionService = new SubscriptionService();
+const controller = new AIController(userService, vacancyService, subscriptionService);
 
 // Все роуты требуют аутентификации
 router.use(authMiddleware);
