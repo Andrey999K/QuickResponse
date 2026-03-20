@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import { BarChart2, Search, Settings, User } from "@deemlol/next-icons";
+import { WalletOutlined } from "@ant-design/icons";
 import { Card } from "antd";
 import Link from "next/link";
 
@@ -22,7 +23,7 @@ type DashboardLayoutProps = {
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, loading } = useCurrentUser();
   const { unreadCount } = useUnreadNotifications();
-  
+
   // Подключаем SSE для real-time уведомлений
   useSSENotifications(true);
 
@@ -47,6 +48,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             text="Статистика"
             url="/dashboard/statistics"
             icon={<BarChart2 size={24} />}
+          />
+          <SidebarLink
+            text="Тарифы"
+            url="/dashboard/subscriptions"
+            icon={<WalletOutlined style={{ fontSize: "24px" }} />}
           />
           <SidebarLink
             text="Профиль"
