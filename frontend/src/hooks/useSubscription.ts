@@ -8,6 +8,21 @@ import {
   ISubscriptionPermissions,
 } from "@/types/Subscription";
 
+export interface IPaymentResult {
+  redirect_url: string;
+  payment_id: number;
+  inv_id: string;
+}
+
+export interface IPayment {
+  id: number;
+  user_id: number;
+  tier_id: number;
+  amount: number;
+  status: "pending" | "success" | "failed" | "refunded";
+  created_at: string;
+}
+
 export function useTiers() {
   const { data, error, isLoading, mutate } = useSWR<{ tiers: ISubscriptionTier[] }>(
     "/api/subscriptions/tiers",
@@ -54,6 +69,33 @@ export function useSubscriptionPermissions() {
     isError: error,
     mutate,
   };
+}
+
+export function usePaymentHistory() {
+  const { data, error, isLoading, mutate } = useSWR<{ payments: IPayment[] }>(
+    "/api/payments/history",
+    {
+      fetcher: () => apiClient.get<{ payments: IPayment[] }>("/api/payments/history"),
+      shouldRetryOnError: false,
+    },
+  );
+
+  return {
+    payments: data?.payments || [],
+    isLoading,
+    isError: error,
+    mutate,
+  };
+}
+
+export async function createPayment(tierId: number): Promise<IPaymentResult | null> {
+  try {
+    const result = await apiClient.post<IPaymentResult>("/api/payments/create", { tier_id: tierId });
+    return result;
+  } catch (error) {
+    console.error("Create payment error:", error);
+    return null;
+  }
 }
 
 export async function activateSubscription(tierId: number, paymentId?: string) {

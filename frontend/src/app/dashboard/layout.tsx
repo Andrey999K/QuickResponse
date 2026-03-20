@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import { BarChart2, Search, Settings, User } from "@deemlol/next-icons";
-import { WalletOutlined } from "@ant-design/icons";
+import { WalletOutlined, FileTextOutlined } from "@ant-design/icons";
 import { Card } from "antd";
 import Link from "next/link";
 
@@ -53,6 +53,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             text="Тарифы"
             url="/dashboard/subscriptions"
             icon={<WalletOutlined style={{ fontSize: "24px" }} />}
+          />
+          <SidebarLink
+            text="Платежи"
+            url="/dashboard/billing"
+            icon={<FileTextOutlined style={{ fontSize: "24px" }} />}
           />
           <SidebarLink
             text="Профиль"
