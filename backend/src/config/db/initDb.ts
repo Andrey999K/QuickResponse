@@ -4,6 +4,7 @@ import { logger } from "@/utils/log";
 import { seedSearches, seedUsers } from "./seeds";
 import { createSubscriptionsTables } from "./migrations/003-create-subscriptions-tables";
 import { createPaymentsTable } from "./migrations/004-create-payments-table";
+import { addSubscriptionLimits } from "./migrations/005-add-subscription-limits";
 
 export async function initDatabase() {
   try {
@@ -18,6 +19,7 @@ export async function initDatabase() {
     // 3. Миграции для подписок и платежей
     await createSubscriptionsTables();
     await createPaymentsTable();
+    await addSubscriptionLimits();
 
     // 4. Заполнение моковыми данными
     await seedDatabase();
