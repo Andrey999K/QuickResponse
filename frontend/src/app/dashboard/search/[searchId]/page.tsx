@@ -89,6 +89,7 @@ export default function VacanciesPage() {
               <VacancyCard
                 key={vacancy.id}
                 vacancy={vacancy}
+                searchId={searchId}
                 onMarkAsRead={() => mutate()}
               />
             ))}

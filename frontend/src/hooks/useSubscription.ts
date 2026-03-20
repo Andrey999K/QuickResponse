@@ -23,6 +23,18 @@ export interface IPayment {
   created_at: string;
 }
 
+export interface IAiLimitStatus {
+  allowed: boolean;
+  remaining: number;
+  limit: number;
+  reason?: string;
+}
+
+export interface IAiLimitStatusResponse {
+  auto: IAiLimitStatus;
+  manual: IAiLimitStatus;
+}
+
 export function useTiers() {
   const { data, error, isLoading, mutate } = useSWR<{ tiers: ISubscriptionTier[] }>(
     "/api/subscriptions/tiers",
@@ -104,4 +116,23 @@ export async function activateSubscription(tierId: number, paymentId?: string) {
 
 export async function cancelSubscription() {
   return apiClient.post("/api/subscriptions/cancel");
+}
+
+export function useAiLimitStatus(searchId: number | null) {
+  const { data, error, isLoading, mutate } = useSWR<{ data: IAiLimitStatusResponse }>(
+    searchId ? `/api/ai/limit-status/${searchId}` : null,
+    {
+      fetcher: () => apiClient.get<{ data: IAiLimitStatusResponse }>(`/api/ai/limit-status/${searchId}`),
+      refreshInterval: 60000, // Обновлять каждые 60 секунд
+      shouldRetryOnError: false,
+    },
+  );
+
+  return {
+    auto: data?.data.auto,
+    manual: data?.data.manual,
+    isLoading,
+    isError: error,
+    mutate,
+  };
 }
