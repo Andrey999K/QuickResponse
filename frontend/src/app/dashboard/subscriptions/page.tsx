@@ -2,12 +2,7 @@
 
 import { Button, Card, Col, message, Row, Space, Tag, Typography } from "antd";
 import { CheckCircleOutlined } from "@ant-design/icons";
-import {
-  activateSubscription,
-  createPayment,
-  useMySubscription,
-  useTiers,
-} from "@/hooks/useSubscription";
+import { activateSubscription, createPayment, useMySubscription, useTiers } from "@/hooks/useSubscription";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -18,6 +13,7 @@ export default function SubscriptionsPage() {
   const { tiers, isLoading: tiersLoading } = useTiers();
   const { subscription, isLoading: subLoading } = useMySubscription();
   const [processing, setProcessing] = useState<number | null>(null);
+  // const [redirectURL, setRedirectURL] = useState<null | string>(null);
 
   const currentTierId = subscription?.tier.id;
 
@@ -40,26 +36,31 @@ export default function SubscriptionsPage() {
       }
 
       // Для платных тарифов - создаём платёж и перенаправляем на Robokassa
+      console.log(`[Robokassa] Создание платежа для тарифа ${tierId}`);
       const paymentResult = await createPayment(tierId);
+
       if (!paymentResult) {
+        console.error(`[Robokassa] Ошибка: paymentResult=null`);
         message.error("Ошибка при создании платежа");
         return;
       }
 
+      console.log(`[Robokassa] Редирект на URL: ${paymentResult.redirect_url}`);
       message.loading({ content: "Перенаправление на оплату...", key: "payment", duration: 2 });
 
       // Перенаправляем на Robokassa
       window.location.href = paymentResult.redirect_url;
+      // setRedirectURL(paymentResult.redirect_url);
     } catch (error) {
       message.error("Ошибка при выборе тарифа");
-      console.error("Tariff selection error:", error);
+      console.error("[Robokassa] Ошибка выбора тарифа:", error);
     } finally {
       setProcessing(null);
     }
   };
 
   const renderFeatures = (tier: typeof tiers[0]) => (
-    <Space direction="vertical" size="small" style={{ width: "100%", marginTop: 16 }}>
+    <Space orientation="vertical" size="small" style={{ width: "100%", marginTop: 16 }}>
       <div>
         <CheckCircleOutlined style={{ color: "#52c41a", marginRight: 8 }} />
         <Text>Интервал проверки: {tier.check_interval} мин</Text>
@@ -94,6 +95,11 @@ export default function SubscriptionsPage() {
       <Text type="secondary" style={{ display: "block", marginBottom: 24 }}>
         Выберите подходящий тариф для автоматизации откликов
       </Text>
+
+      {/*{!!redirectURL && <form action={redirectURL} method="POST">*/}
+      {/*  <span>Форма</span>*/}
+      {/*  <button type="submit" className="p-2 rounded-lg bg-blue-500 cursor-pointer">Оплачивай крч</button>*/}
+      {/*</form>}*/}
 
       <Row gutter={[16, 16]}>
         {tiers.map((tier) => {

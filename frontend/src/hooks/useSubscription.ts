@@ -2,11 +2,7 @@
 
 import useSWR from "swr";
 import { apiClient } from "@/lib/api-client";
-import {
-  ISubscriptionTier,
-  ISubscriptionWithTier,
-  ISubscriptionPermissions,
-} from "@/types/Subscription";
+import { ISubscriptionPermissions, ISubscriptionTier, ISubscriptionWithTier } from "@/types/Subscription";
 
 export interface IPaymentResult {
   redirect_url: string;
@@ -102,10 +98,12 @@ export function usePaymentHistory() {
 
 export async function createPayment(tierId: number): Promise<IPaymentResult | null> {
   try {
+    console.log(`[Robokassa] Запрос на создание платежа, tierId=${tierId}`);
     const result = await apiClient.post<IPaymentResult>("/api/payments/create", { tier_id: tierId });
+    console.log(`[Robokassa] Получен ответ от бэка:`, result);
     return result;
   } catch (error) {
-    console.error("Create payment error:", error);
+    console.error("[Robokassa] Ошибка создания платежа:", error);
     return null;
   }
 }
