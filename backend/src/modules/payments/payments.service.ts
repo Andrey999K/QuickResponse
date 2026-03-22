@@ -15,7 +15,7 @@ export class PaymentService {
 
   constructor() {
     this.merchantId = env.ROBOKASSA_MERCHANT_ID || "";
-    this.secretKey1 = env.ROBOKASSA_SECRET_KEY_1 || "";
+    this.secretKey1 = env.ROBOKASSA_TEST_SECRET_KEY_1 || "";
     this.testMode = env.ROBOKASSA_TEST_MODE;
     // Правильный URL для инициализации платежа (единый для теста и продакшена)
     this.baseUrl = "https://auth.robokassa.ru/Merchant/Index.aspx";
@@ -55,7 +55,7 @@ export class PaymentService {
 
       // Формируем данные для подписи (Robokassa требует MD5)
       // const signatureString = `${this.merchantId}:${amount}:${invId}`;
-      const signatureString = `${this.merchantId}:${amount}:${invId}`;
+      const signatureString = `${this.merchantId}:${amount.toFixed(2)}:${invId}`;
       const signatureValue = this.generateSignature(signatureString, this.secretKey1);
 
       logger.info(`[Robokassa] Signature generation:`);
@@ -230,7 +230,7 @@ export class PaymentService {
    * Генерация подписи для запроса через MD5 (требование Robokassa)
    */
   private generateSignature(data: string, secretKey: string): string {
-    console.log("Signature: ", `${data}::${secretKey}`);
+    console.log("Signature: ", `${data}:${secretKey}`);
     return crypto
       .createHash("sha256")
       .update(`${data}:${secretKey}`)
