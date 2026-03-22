@@ -9,6 +9,7 @@ import { message } from "antd";
  */
 interface GenerateCoverLetterParams {
   vacancyId?: number;
+  searchId?: number;
   vacancyTitle: string;
   company?: string | null;
   description?: string | null;

@@ -1,20 +1,25 @@
-import { Card, Tag, Button, Space, Modal } from "antd";
+import { Card, Tag, Button, Space, Modal, Tooltip } from "antd";
 import { IVacancy } from "@/types/Vacancy";
 import { useMarkVacancyAsRead } from "@/hooks/useVacancyApi";
 import { CheckCircleOutlined, LinkOutlined, RobotOutlined } from "@ant-design/icons";
 import { useGenerateCoverLetter } from "@/hooks/useGenerateCoverLetter";
+import { useAiLimitStatus } from "@/hooks/useSubscription";
 import { useState } from "react";
 
 type VacancyCardProps = {
   vacancy: IVacancy;
+  searchId?: number;
   onMarkAsRead: () => void;
 };
 
-export const VacancyCard = ({ vacancy, onMarkAsRead }: VacancyCardProps) => {
+export const VacancyCard = ({ vacancy, searchId, onMarkAsRead }: VacancyCardProps) => {
   const { markVacancyAsRead } = useMarkVacancyAsRead();
   const { generateCoverLetter, isLoading: isGenerating } = useGenerateCoverLetter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [generatedLetter, setGeneratedLetter] = useState<string | null>(vacancy.cover_letter);
+
+  // Получаем статус лимитов AI если указан searchId
+  const { manual: manualLimit, isLoading: isLoadingLimit } = useAiLimitStatus(searchId ?? null);
 
   const handleMarkAsRead = async () => {
     await markVacancyAsRead(vacancy.id);
@@ -33,9 +38,10 @@ export const VacancyCard = ({ vacancy, onMarkAsRead }: VacancyCardProps) => {
 
   const handleGenerateCoverLetter = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     const coverLetter = await generateCoverLetter({
       vacancyId: vacancy.id,
+      searchId: searchId,
       vacancyTitle: vacancy.title,
       company: vacancy.company,
       description: vacancy.description,
@@ -102,15 +108,29 @@ export const VacancyCard = ({ vacancy, onMarkAsRead }: VacancyCardProps) => {
                   Письмо
                 </Button>
               ) : (
-                <Button
-                  size="small"
-                  type="primary"
-                  icon={<RobotOutlined />}
-                  onClick={handleGenerateCoverLetter}
-                  loading={isGenerating}
+                <Tooltip
+                  title={
+                    !manualLimit?.allowed && manualLimit?.reason
+                      ? manualLimit.reason
+                      : undefined
+                  }
+                  open={
+                    !isLoadingLimit && manualLimit && !manualLimit.allowed
+                      ? undefined
+                      : false
+                  }
                 >
-                  AI
-                </Button>
+                  <Button
+                    size="small"
+                    type={manualLimit?.allowed ? "primary" : "default"}
+                    icon={<RobotOutlined />}
+                    onClick={handleGenerateCoverLetter}
+                    loading={isGenerating || isLoadingLimit}
+                    disabled={!manualLimit?.allowed && !isLoadingLimit}
+                  >
+                    AI {manualLimit && !isLoadingLimit ? `(${manualLimit.remaining})` : ""}
+                  </Button>
+                </Tooltip>
               )}
             </Space>
           </div>

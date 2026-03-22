@@ -2,6 +2,9 @@ import "colors";
 import { pool } from "./connection";
 import { logger } from "@/utils/log";
 import { seedSearches, seedUsers } from "./seeds";
+import { createSubscriptionsTables } from "./migrations/003-create-subscriptions-tables";
+import { createPaymentsTable } from "./migrations/004-create-payments-table";
+import { addSubscriptionLimits } from "./migrations/005-add-subscription-limits";
 
 export async function initDatabase() {
   try {
@@ -13,7 +16,12 @@ export async function initDatabase() {
     // 2. Очистка существующих данных (опционально)
     // await clearExistingData();
 
-    // 3. Заполнение моковыми данными
+    // 3. Миграции для подписок и платежей
+    await createSubscriptionsTables();
+    await createPaymentsTable();
+    await addSubscriptionLimits();
+
+    // 4. Заполнение моковыми данными
     await seedDatabase();
 
     logger.info("Database initialized successfully!".blue);
