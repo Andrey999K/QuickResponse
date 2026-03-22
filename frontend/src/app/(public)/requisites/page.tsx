@@ -1,7 +1,6 @@
-import { Card, Descriptions, Typography } from "antd";
+import { Card, Descriptions } from "antd";
 import { SafetyCertificateOutlined } from "@ant-design/icons";
 import { Wrapper } from "@/components/common/Wrapper";
-import Head from "next/head";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -12,25 +11,26 @@ export const metadata: Metadata = {
   },
 };
 
-const { Title, Text } = Typography;
-
 export default function RequisitesPage() {
   const fio = process.env.NEXT_PUBLIC_FIO || "Иванов Иван Иванович";
   const inn = process.env.NEXT_PUBLIC_INN || "999999999999";
 
   return (
-    <>
-      <Head>
-        <meta name="robots" content="noindex, nofollow" />
-      </Head>
-      <main className="flex-1 py-12">
-        <Wrapper className="!max-w-3xl">
-          <Title level={2} className="text-gray-900 dark:text-white mb-2">
-            Реквизиты
-          </Title>
-          <Text
-            type="secondary"
-            className="text-gray-500 dark:text-gray-400 block mb-8"
+    <main className="flex-1 py-12">
+      <Wrapper className="!max-w-3xl">
+        <h2 className="text-gray-900 dark:text-white mb-2 text-3xl font-bold">
+          Реквизиты
+        </h2>
+        <p
+          className="text-gray-500 dark:text-gray-400 block mb-4 text-sm"
+        >
+          Информация для оплаты и документооборота
+        </p>
+
+        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <Descriptions
+            bordered
+            column={1}
           >
             Информация для оплаты и документооборота
           </Text>
