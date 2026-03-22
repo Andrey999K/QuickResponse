@@ -54,7 +54,6 @@ export class PaymentService {
       logger.info(`[Robokassa] Payment record created in DB: id=${payment.id}, inv_id=${invId}`);
 
       // Формируем данные для подписи (Robokassa требует MD5)
-      // const signatureString = `${this.merchantId}:${amount}:${invId}`;
       const signatureString = `${this.merchantId}:${amount.toFixed(2)}:${invId}`;
       const signatureValue = this.generateSignature(signatureString, this.secretKey1);
 
@@ -80,6 +79,10 @@ export class PaymentService {
         redirectUrl.searchParams.set("IsTest", "1");
         logger.info("[Robokassa] Тестовый режим включён (IsTest=1)");
       }
+
+      // Добавляем SuccessURL для редиректа после успешной оплаты
+      redirectUrl.searchParams.set("SuccessURL", env.ROBOKASSA_SUCCESS_URL);
+      logger.info(`[Robokassa] SuccessURL: ${env.ROBOKASSA_SUCCESS_URL}`);
 
       const finalUrl = redirectUrl.toString();
       logger.info(`[Robokassa] Final redirect URL: ${finalUrl}`);
