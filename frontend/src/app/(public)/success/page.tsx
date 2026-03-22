@@ -1,55 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Result, Button, Spin, Typography, Card } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import { Button, Card, Result, Spin, Typography } from "antd";
+import { CheckCircleOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isProcessing, setIsProcessing] = useState(true);
-  const [paymentStatus, setPaymentStatus] = useState<"success" | "error" | null>(null);
 
-  useEffect(() => {
-    // Считываем параметры от Robokassa
-    const outSum = searchParams.get("OutSum");
-    const invId = searchParams.get("InvId");
-    const signatureValue = searchParams.get("SignatureValue");
-    const isTest = searchParams.get("IsTest");
+  // Считываем параметры — useMemo чтобы не было warning
+  const outSum = useMemo(() => searchParams.get("OutSum"), [searchParams]);
+  const invId = useMemo(() => searchParams.get("InvId"), [searchParams]);
+  const signatureValue = useMemo(() => searchParams.get("SignatureValue"), [searchParams]);
+  const isTest = useMemo(() => searchParams.get("IsTest"), [searchParams]);
 
-    // Проверяем наличие всех параметров
-    if (!outSum || !invId || !signatureValue) {
-      setPaymentStatus("error");
-      setIsProcessing(false);
-      return;
-    }
+  // Проверяем наличие всех параметров
+  const hasError = !outSum || !invId || !signatureValue;
 
-    // Параметры получены — платёж успешен
-    // В реальном приложении здесь можно отправить запрос на бэкенд
-    // для дополнительной проверки статуса платежа
-    console.log("[Robokassa] Параметры оплаты получены:", {
-      OutSum: outSum,
-      InvId: invId,
-      SignatureValue: signatureValue,
-      IsTest: isTest,
-    });
+  // Показываем спиннер только если параметры ещё не прочитаны
+  // Это происходит при первом рендере, когда searchParams ещё не распаршены
+  const isLoading = outSum === null && invId === null && signatureValue === null;
 
-    setPaymentStatus("success");
-    setIsProcessing(false);
-  }, [searchParams]);
-
-  if (isProcessing) {
+  if (isLoading) {
     return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#f0f2f5",
-      }}>
+      <div className="flex justify-center items-center flex-1">
         <Card style={{ textAlign: "center" }}>
           <Spin size="large" />
           <div style={{ marginTop: 16 }}>
@@ -60,15 +37,9 @@ export default function PaymentSuccessPage() {
     );
   }
 
-  if (paymentStatus === "error") {
+  if (hasError) {
     return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#f0f2f5",
-      }}>
+      <div className="flex justify-center items-center flex-1">
         <Card style={{ maxWidth: 500, width: "100%" }}>
           <Result
             status="error"
@@ -96,18 +67,8 @@ export default function PaymentSuccessPage() {
   }
 
   // Успешная оплата
-  const outSum = searchParams.get("OutSum");
-  const invId = searchParams.get("InvId");
-  const isTest = searchParams.get("IsTest");
-
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "#f0f2f5",
-    }}>
+    <div className="flex justify-center items-center flex-1">
       <Card style={{ maxWidth: 500, width: "100%" }}>
         <Result
           icon={<CheckCircleOutlined style={{ color: "#52c41a", fontSize: 72 }} />}

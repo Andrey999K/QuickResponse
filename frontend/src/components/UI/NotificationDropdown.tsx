@@ -6,14 +6,11 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { ReactNode } from "react";
 
+import { INotification, NotificationType } from "@/types/Notification";
 import {
-  INotification,
-  NotificationType,
-} from "@/types/Notification";
-import {
+  useDeleteNotification,
   useMarkAllNotificationsAsRead,
   useMarkNotificationAsRead,
-  useDeleteNotification,
   useNotifications,
   useUnreadNotifications,
 } from "@/hooks/useNotificationApi";
@@ -27,11 +24,11 @@ interface NotificationDropdownProps {
 }
 
 export const NotificationDropdown = ({
-  children,
-  open,
-  onOpenChange,
-}: NotificationDropdownProps) => {
-  const { notifications, isLoading, mutate, error } = useNotifications(10, 0);
+                                       children,
+                                       open,
+                                       onOpenChange,
+                                     }: NotificationDropdownProps) => {
+  const { notifications, isLoading, mutate } = useNotifications(10, 0);
   const { unreadCount, mutate: mutateUnread } = useUnreadNotifications();
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const { markAllNotificationsAsRead } = useMarkAllNotificationsAsRead();
@@ -66,16 +63,6 @@ export const NotificationDropdown = ({
       warning: <Bell size={16} />,
     };
     return icons[type] || <Bell size={16} />;
-  };
-
-  const getNotificationColor = (type: NotificationType) => {
-    const colors: Record<NotificationType, string> = {
-      vacancy: "blue",
-      info: "default",
-      success: "green",
-      warning: "orange",
-    };
-    return colors[type] || "default";
   };
 
   const items: MenuProps["items"] = [
@@ -178,7 +165,8 @@ export const NotificationDropdown = ({
       open={open}
       onOpenChange={onOpenChange}
       popupRender={(menu) => (
-        <div className="w-[380px] bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700">
+        <div
+          className="w-[380px] bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700">
           {menu}
         </div>
       )}
