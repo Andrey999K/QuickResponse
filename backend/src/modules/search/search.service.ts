@@ -180,4 +180,17 @@ export class SearchService {
       throw new Error("Error while toggling search status");
     }
   }
+
+  async getUserSearchCount(userId: number): Promise<number> {
+    try {
+      const result = await pool.query<{ count: string }>(
+        "SELECT COUNT(*) FROM searches WHERE user_id = $1",
+        [userId],
+      );
+      return parseInt(result.rows[0]?.count || "0", 10);
+    } catch (error) {
+      console.error("Error fetching search count:", error);
+      throw new Error("Error while fetching search count");
+    }
+  }
 }

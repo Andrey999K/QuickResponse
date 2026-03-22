@@ -1,9 +1,11 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "@/types/authRequest";
 import { SubscriptionService } from "@/modules/subscriptions/subscriptions.service";
+import { SearchService } from "@/modules/search/search.service";
 import { logger } from "@/utils/log";
 
 const subscriptionService = new SubscriptionService();
+const searchService = new SearchService();
 
 /**
  * Middleware для проверки возможности использования Telegram уведомлений
@@ -143,12 +145,8 @@ export const checkSearchLimit = async (
 
     const maxSearches = subscription.tier.max_searches;
 
-    // Получаем количество поисков пользователя
-    const searchCountResult = await require("@/config/db/connection").pool.query(
-      "SELECT COUNT(*) FROM searches WHERE user_id = $1",
-      [userId],
-    );
-    const searchCount = parseInt(searchCountResult.rows[0]?.count || "0", 10);
+    // Получаем количество поисков пользователя через сервис
+    const searchCount = await searchService.getUserSearchCount(userId);
 
     if (searchCount >= maxSearches) {
       logger.warn(`User ${userId} reached search limit (${searchCount}/${maxSearches})`);

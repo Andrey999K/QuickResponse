@@ -1,22 +1,21 @@
 import { Router } from "express";
 import {
+  createSearch,
+  deleteSearch,
   getAllSearches,
   getSearch,
-  createSearch,
-  updateSearch,
-  deleteSearch,
   toggleSearchStatus,
+  updateSearch,
 } from "@/modules/search/search.controller";
-import { authMiddleware } from "@/middleware/auth.middleware";
 import { checkSearchLimit } from "@/middleware/subscription.middleware";
 
 const router = Router();
 
-router.get("/", authMiddleware, getAllSearches);
-router.get("/:id", authMiddleware, getSearch);
-router.post("/", authMiddleware, checkSearchLimit, createSearch);
-router.patch("/:id", authMiddleware, updateSearch);
-router.patch("/:id/toggle-status", authMiddleware, toggleSearchStatus);
-router.delete("/:id", authMiddleware, deleteSearch);
+router.get("/", getAllSearches);
+router.get("/:id", getSearch);
+router.post("/", checkSearchLimit, createSearch);
+router.patch("/:id", updateSearch);
+router.patch("/:id/toggle-status", toggleSearchStatus);
+router.delete("/:id", deleteSearch);
 
 export const searchRoutes = router;
