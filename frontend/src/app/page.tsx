@@ -361,6 +361,12 @@ export default function Home() {
                     Авторизоваться
                   </Link>
                   <Link
+                    href="/requisites"
+                    className="hover:text-primary-500 transition-colors"
+                  >
+                    Реквизиты
+                  </Link>
+                  <Link
                     href="/#benefits"
                     className="hover:text-primary-500 transition-colors"
                   >
