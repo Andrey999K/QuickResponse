@@ -50,35 +50,37 @@ export const UpgradeSubscriptionModal = ({
   };
 
   const getRequiredTiers = () => {
+    type TierData = { name: string; price: number; searches?: number; feature?: string };
+
     switch (reason) {
       case "search_limit":
         return [
-          { name: "Basic", price: 99, searches: 1 },
-          { name: "Standard", price: 199, searches: 2 },
-          { name: "Pro", price: 299, searches: 2 },
-          { name: "Premium", price: 399, searches: 3 },
-        ];
+          { name: "Basic", price: 99, searches: 1, feature: undefined },
+          { name: "Standard", price: 199, searches: 2, feature: undefined },
+          { name: "Pro", price: 299, searches: 2, feature: undefined },
+          { name: "Premium", price: 399, searches: 3, feature: undefined },
+        ] as TierData[];
       case "ai_not_available":
         return [
-          { name: "Pro", price: 299, feature: "AI авто + 3 письма/день" },
-          { name: "Premium", price: 399, feature: "AI авто + 10 писем/день + ручные" },
-        ];
+          { name: "Pro", price: 299, searches: undefined, feature: "AI авто + 3 письма/день" },
+          { name: "Premium", price: 399, searches: undefined, feature: "AI авто + 10 писем/день + ручные" },
+        ] as TierData[];
       case "telegram_not_available":
         return [
-          { name: "Standard", price: 199, feature: "Telegram + In-App уведомления" },
-          { name: "Pro", price: 299, feature: "Telegram + AI" },
-          { name: "Premium", price: 399, feature: "Все функции" },
-        ];
+          { name: "Standard", price: 199, searches: undefined, feature: "Telegram + In-App уведомления" },
+          { name: "Pro", price: 299, searches: undefined, feature: "Telegram + AI" },
+          { name: "Premium", price: 399, searches: undefined, feature: "Все функции" },
+        ] as TierData[];
       case "custom_prompt_not_available":
         return [
-          { name: "Premium", price: 399, feature: "Кастомный промпт + все функции" },
-        ];
+          { name: "Premium", price: 399, searches: undefined, feature: "Кастомный промпт + все функции" },
+        ] as TierData[];
       default:
-        return [];
+        return [] as TierData[];
     }
   };
 
-  const requiredTiers = getRequiredTiers();
+  const requiredTiers: ReturnType<typeof getRequiredTiers> = getRequiredTiers();
 
   return (
     <Modal

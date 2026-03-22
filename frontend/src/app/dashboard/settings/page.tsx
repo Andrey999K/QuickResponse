@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Button, Card, Input, message, Modal, QRCode, Switch, Tooltip } from "antd";
-import { Bell, BellOff, LockOutlined } from "@deemlol/next-icons";
+import { Bell, BellOff } from "@deemlol/next-icons";
+import { LockOutlined } from "@ant-design/icons";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useSubscriptionPermissions } from "@/hooks/useSubscription";
