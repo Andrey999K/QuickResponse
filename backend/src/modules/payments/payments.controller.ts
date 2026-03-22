@@ -30,15 +30,20 @@ export const createPayment = async (req: AuthRequest, res: Response) => {
 
     const { tier_id } = validation.data;
 
+    logger.info(`[Robokassa] Запрос на создание платежа: user_id=${userId}, tier_id=${tier_id}`);
+
     // Получаем информацию о тарифе
     const tier = await subscriptionService.getTierById(tier_id);
     if (!tier) {
+      logger.error(`[Robokassa] Тариф не найден: ${tier_id}`);
       return res.status(404).json({ error: "Tariff not found" });
     }
 
     // Получаем email пользователя
     const user = await userService.getUser(userId);
     const email = user?.email || "user@example.com";
+
+    logger.info(`[Robokassa] Тариф найден: ${tier.name}, цена: ${tier.price}₽`);
 
     // Создаём платёж
     const payment = await paymentService.createPayment({
@@ -50,8 +55,11 @@ export const createPayment = async (req: AuthRequest, res: Response) => {
     });
 
     if (!payment) {
+      logger.error(`[Robokassa] Не удалось создать платёж`);
       return res.status(500).json({ error: "Failed to create payment" });
     }
+
+    logger.info(`[Robokassa] Платёж создан, redirect_url: ${payment.redirect_url}`);
 
     return res.json({
       redirect_url: payment.redirect_url,
@@ -59,7 +67,7 @@ export const createPayment = async (req: AuthRequest, res: Response) => {
       inv_id: payment.inv_id,
     });
   } catch (error) {
-    logger.error("Error creating payment:", error);
+    logger.error("[Robokassa] Ошибка создания платежа:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -70,9 +78,12 @@ export const createPayment = async (req: AuthRequest, res: Response) => {
  */
 export const paymentResult = async (req: AuthRequest, res: Response) => {
   try {
+    logger.info(`[Robokassa] Получен webhook на /api/payments/result`);
+    logger.info(`[Robokassa] Тело запроса:`, JSON.stringify(req.body, null, 2));
+
     const validation = robokassaResultDto.safeParse(req.body);
     if (!validation.success) {
-      logger.error("Invalid webhook data:", validation.error.issues);
+      logger.error(`[Robokassa] Неверные данные webhook:`, validation.error.issues);
       return res.status(400).send("BAD REQUEST");
     }
 
@@ -87,13 +98,15 @@ export const paymentResult = async (req: AuthRequest, res: Response) => {
     const result = await paymentService.handleResultWebhook(webhookData);
 
     if (result.success) {
+      logger.info(`[Robokassa] Webhook обработан успешно, возврат подписи: ${result.signature}`);
       // Возвращаем подпись для подтверждения
       return res.send(result.signature);
     } else {
+      logger.error(`[Robokassa] Ошибка обработки webhook`);
       return res.status(400).send("INVALID SIGNATURE");
     }
   } catch (error) {
-    logger.error("Error handling payment result:", error);
+    logger.error("[Robokassa] Ошибка обработки webhook:", error);
     return res.status(500).send("SERVER ERROR");
   }
 };

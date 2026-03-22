@@ -17,9 +17,8 @@ export class PaymentService {
     this.merchantId = env.ROBOKASSA_MERCHANT_ID || "";
     this.secretKey1 = env.ROBOKASSA_SECRET_KEY_1 || "";
     this.testMode = env.ROBOKASSA_TEST_MODE;
-    this.baseUrl = this.testMode
-      ? "https://auth.robokassa.ru/pay/"
-      : "https://auth.robokassa.ru/pay/";
+    // Правильный URL для инициализации платежа (единый для теста и продакшена)
+    this.baseUrl = "https://auth.robokassa.ru/Merchant/Index.aspx";
   }
 
   /**
@@ -29,10 +28,12 @@ export class PaymentService {
     data: CreatePaymentData,
   ): Promise<CreatePaymentResult | null> {
     try {
-      const { user_id, tier_id, amount, email, description } = data;
+      const { user_id, tier_id, amount } = data;
 
-      // Генерируем уникальный InvId (invoice ID)
-      const invId = `INV-${user_id}-${tier_id}-${Date.now()}`;
+      // Генерируем уникальный InvId (invoice ID) — только число!
+      const invId = Date.now().toString();
+
+      logger.info(`[Robokassa] Creating payment: user_id=${user_id}, tier_id=${tier_id}, amount=${amount}`);
 
       // Создаём запись о платеже в БД
       const result = await pool.query<Payment>(
@@ -41,7 +42,7 @@ export class PaymentService {
         VALUES ($1, $2, $3, 'pending', $4, $5)
         RETURNING *
       `,
-        [user_id, tier_id, amount, invId, description || `Оплата тарифа #${tier_id}`],
+        [user_id, tier_id, amount, invId, `Оплата тарифа #${tier_id}`],
       );
 
       const payment = result.rows[0];
@@ -50,32 +51,47 @@ export class PaymentService {
         return null;
       }
 
-      // Формируем данные для подписи
-      const signatureValue = this.generateSignature(
-        `${this.merchantId}:${amount}:${invId}`,
-        this.secretKey1,
-      );
+      logger.info(`[Robokassa] Payment record created in DB: id=${payment.id}, inv_id=${invId}`);
 
-      // Формируем URL для перенаправления на оплату
+      // Формируем данные для подписи (Robokassa требует MD5)
+      // const signatureString = `${this.merchantId}:${amount}:${invId}`;
+      const signatureString = `${this.merchantId}:${amount}:${invId}`;
+      const signatureValue = this.generateSignature(signatureString, this.secretKey1);
+
+      logger.info(`[Robokassa] Signature generation:`);
+      logger.info(`  - MerchantLogin: ${this.merchantId}`);
+      logger.info(`  - OutSum: ${amount.toFixed(2)}`);
+      logger.info(`  - InvId: ${invId}`);
+      logger.info(`  - TestMode: ${this.testMode}`);
+      logger.info(`  - SignatureString: ${signatureString}`);
+      logger.info(`  - SignatureValue: ${signatureValue}`);
+
+      // Формируем URL с параметрами для перенаправления
+      // Robokassa использует GET параметры для инициализации
+      // Обязательные параметры: MerchantLogin, OutSum, SignatureValue
       const redirectUrl = new URL(this.baseUrl);
-      redirectUrl.searchParams.set("MerchantId", this.merchantId);
-      redirectUrl.searchParams.set("OutSum", amount.toString());
+      redirectUrl.searchParams.set("MerchantLogin", this.merchantId);
+      redirectUrl.searchParams.set("OutSum", amount.toFixed(2)); // Формат: 99.00
       redirectUrl.searchParams.set("InvId", invId);
       redirectUrl.searchParams.set("SignatureValue", signatureValue);
-      redirectUrl.searchParams.set("Shp_itemid", tier_id.toString());
-      redirectUrl.searchParams.set("Shp_user_id", user_id.toString());
-      redirectUrl.searchParams.set("Email", email);
-      redirectUrl.searchParams.set("IsTest", this.testMode ? "1" : "0");
 
-      logger.info(`Payment created: ${payment.id}, InvId: ${invId}`);
+      // Добавляем параметр IsTest=1 для тестового режима
+      if (this.testMode) {
+        redirectUrl.searchParams.set("IsTest", "1");
+        logger.info("[Robokassa] Тестовый режим включён (IsTest=1)");
+      }
+
+      const finalUrl = redirectUrl.toString();
+      logger.info(`[Robokassa] Final redirect URL: ${finalUrl}`);
+      logger.info(`[Robokassa] Payment created successfully: ${payment.id}, InvId: ${invId}`);
 
       return {
         payment_id: payment.id,
-        redirect_url: redirectUrl.toString(),
+        redirect_url: finalUrl,
         inv_id: invId,
       };
     } catch (error) {
-      logger.error("Error creating payment:", error);
+      logger.error("[Robokassa] Error creating payment:", error);
       return null;
     }
   }
@@ -88,11 +104,21 @@ export class PaymentService {
   ): Promise<{ success: boolean; signature: string }> {
     const { InvId, OutSum, SignatureValue, Shp_itemid, Shp_user_id } = data;
 
-    // Проверяем подпись
+    logger.info(`[Robokassa] Webhook получен (Result URL):`);
+    logger.info(`  - InvId: ${InvId}`);
+    logger.info(`  - OutSum: ${OutSum}`);
+    logger.info(`  - SignatureValue (от Robokassa): ${SignatureValue}`);
+    logger.info(`  - Shp_itemid: ${Shp_itemid}`);
+    logger.info(`  - Shp_user_id: ${Shp_user_id}`);
+
+    // Проверяем подпись через secretKey1
     const isValid = this.verifySignature(OutSum, InvId, SignatureValue, this.secretKey1);
 
+    logger.info(`[Robokassa] Проверка подписи: ${isValid ? "VALID" : "INVALID"}`);
+
     if (!isValid) {
-      logger.error(`Invalid signature for payment ${InvId}`);
+      logger.error(`[Robokassa] Неверная подпись для платежа ${InvId}`);
+      logger.error(`[Robokassa] Ожидаемая подпись: ${this.generateSignature(`${OutSum}:${InvId}`, this.secretKey1)}`);
       return { success: false, signature: "" };
     }
 
@@ -101,7 +127,9 @@ export class PaymentService {
       const tierId = Shp_itemid ? parseInt(Shp_itemid, 10) : null;
       const userId = Shp_user_id ? parseInt(Shp_user_id, 10) : null;
 
-      await pool.query(
+      logger.info(`[Robokassa] Обновление статуса платежа ${InvId} на 'success'`);
+
+      const updateResult = await pool.query(
         `
         UPDATE payments
         SET status = 'success',
@@ -112,10 +140,13 @@ export class PaymentService {
         [InvId, InvId],
       );
 
-      logger.info(`Payment ${InvId} marked as successful`);
+      logger.info(`[Robokassa] Платёж ${InvId} помечен как успешный (обновлено строк: ${updateResult.rowCount})`);
 
       // Активируем подписку
       if (userId && tierId) {
+        logger.info(`[Robokassa] Активация подписки для пользователя ${userId}, тариф ${tierId}`);
+
+        // Деактивируем текущую подписку
         await pool.query(
           `
           UPDATE subscriptions
@@ -125,6 +156,7 @@ export class PaymentService {
           [userId],
         );
 
+        // Создаём новую активную подписку
         await pool.query(
           `
           INSERT INTO subscriptions (user_id, tier_id, payment_id, is_active)
@@ -145,12 +177,15 @@ export class PaymentService {
           [tierId, userId],
         );
 
-        logger.info(`Subscription activated for user ${userId}, tier ${tierId}`);
+        logger.info(`[Robokassa] Подписка активирована для пользователя ${userId}, тариф ${tierId}`);
+      } else {
+        logger.warn(`[Robokassa] Отсутствует userId или tierId для активации подписки (userId=${userId}, tierId=${tierId})`);
       }
 
+      logger.info(`[Robokassa] Webhook обработан успешно, возврат подписи: ${SignatureValue}`);
       return { success: true, signature: SignatureValue };
     } catch (error) {
-      logger.error("Error handling webhook:", error);
+      logger.error("[Robokassa] Ошибка обработки webhook:", error);
       return { success: false, signature: "" };
     }
   }
@@ -192,14 +227,15 @@ export class PaymentService {
   }
 
   /**
-   * Генерация подписи для запроса
+   * Генерация подписи для запроса через MD5 (требование Robokassa)
    */
   private generateSignature(data: string, secretKey: string): string {
+    console.log("Signature: ", `${data}::${secretKey}`);
     return crypto
       .createHash("sha256")
       .update(`${data}:${secretKey}`)
-      .digest("hex")
-      .toLowerCase();
+      .digest("hex");
+    // .toLowerCase();
   }
 
   /**
