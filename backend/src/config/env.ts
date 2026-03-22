@@ -20,4 +20,5 @@ export const env = {
   ROBOKASSA_TEST_SECRET_KEY_2: process.env.ROBOKASSA_TEST_SECRET_KEY_2 || "",
   ROBOKASSA_TEST_MODE: process.env.ROBOKASSA_TEST_MODE === "true",
   ROBOKASSA_SUCCESS_URL: process.env.ROBOKASSA_SUCCESS_URL || "http://localhost:3000/success",
+  ROBOKASSA_NGROK_URL: process.env.ROBOKASSA_NGROK_URL || "",
 };
