@@ -1,10 +1,15 @@
-"use client";
-
-import { Card, Descriptions, Typography } from "antd";
+import { Card, Descriptions } from "antd";
 import { SafetyCertificateOutlined } from "@ant-design/icons";
 import { Wrapper } from "@/components/common/Wrapper";
+import { Metadata } from "next";
 
-const { Title, Text } = Typography;
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+  },
+};
 
 export default function RequisitesPage() {
   const fio = process.env.NEXT_PUBLIC_FIO || "Иванов Иван Иванович";
@@ -13,15 +18,14 @@ export default function RequisitesPage() {
   return (
     <main className="flex-1 py-12">
       <Wrapper className="!max-w-3xl">
-        <Title level={2} className="text-gray-900 dark:text-white mb-2">
+        <h2 className="text-gray-900 dark:text-white mb-2 text-3xl font-bold">
           Реквизиты
-        </Title>
-        <Text
-          type="secondary"
-          className="text-gray-500 dark:text-gray-400 block mb-8"
+        </h2>
+        <p
+          className="text-gray-500 dark:text-gray-400 block mb-4 text-sm"
         >
           Информация для оплаты и документооборота
-        </Text>
+        </p>
 
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <Descriptions
