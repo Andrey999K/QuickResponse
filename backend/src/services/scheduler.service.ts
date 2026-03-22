@@ -1,5 +1,5 @@
-import cron from "node-cron";
 import type { ScheduledTask } from "node-cron";
+import cron from "node-cron";
 import { VacancyService } from "@/modules/vacancies/vacancy.service";
 import { ParserService } from "./parser.service";
 import { NotificationService } from "@/modules/notifications/notification.service";
@@ -45,7 +45,7 @@ export class SchedulerService {
       });
 
       const searches = result.rows;
-      logger.info(`[Scheduler] Найдено ${searches.length} активных поисков`);
+      logger.debug(`[Scheduler] Найдено ${searches.length} активных поисков`);
 
       // Запускаем cron-jobs для каждого поиска
       for (const search of searches) {
@@ -57,6 +57,52 @@ export class SchedulerService {
       logger.error(`[Scheduler] Ошибка инициализации: ${(error as Error).message}`);
       throw error;
     }
+  }
+
+  /**
+   * Добавить новый поиск в планировщик
+   */
+  addSearch(search: { id: number; title: string; is_active: boolean }): void {
+    if (search.is_active) {
+      this.scheduleSearch(search);
+    }
+  }
+
+  /**
+   * Удалить поиск из планировщика
+   */
+  removeSearch(searchId: number): void {
+    const task = this.jobs.get(searchId);
+    if (task) {
+      task.stop();
+      this.jobs.delete(searchId);
+      logger.info(`[Scheduler] Задача для поиска ID: ${searchId} удалена`);
+    }
+  }
+
+  /**
+   * Перезапустить задачу для поиска
+   */
+  restartSearch(searchId: number, search: { id: number; title: string; is_active: boolean }): void {
+    this.removeSearch(searchId);
+    if (search.is_active) {
+      this.scheduleSearch(search);
+    }
+  }
+
+  /**
+   * Остановить все задачи
+   */
+  async shutdown(): Promise<void> {
+    logger.info("[Scheduler] Остановка всех задач...");
+
+    for (const [id, task] of this.jobs.entries()) {
+      task.stop();
+      logger.info(`[Scheduler] Задача ID: ${id} остановлена`);
+    }
+
+    this.jobs.clear();
+    logger.info("[Scheduler] Все задачи остановлены");
   }
 
   /**
@@ -131,7 +177,7 @@ export class SchedulerService {
 
       logger.info(
         `[Scheduler] Задача для поиска ID: ${searchId} завершена. ` +
-          `Найдено: ${parseResult.totalCount}, Новых: ${parseResult.newCount}`,
+        `Найдено: ${parseResult.totalCount}, Новых: ${parseResult.newCount}`,
       );
     } catch (error) {
       logger.error(
@@ -159,51 +205,5 @@ export class SchedulerService {
     } catch (error) {
       logger.error(`[Scheduler] Ошибка обновления last_checked_at: ${(error as Error).message}`);
     }
-  }
-
-  /**
-   * Добавить новый поиск в планировщик
-   */
-  addSearch(search: { id: number; title: string; is_active: boolean }): void {
-    if (search.is_active) {
-      this.scheduleSearch(search);
-    }
-  }
-
-  /**
-   * Удалить поиск из планировщика
-   */
-  removeSearch(searchId: number): void {
-    const task = this.jobs.get(searchId);
-    if (task) {
-      task.stop();
-      this.jobs.delete(searchId);
-      logger.info(`[Scheduler] Задача для поиска ID: ${searchId} удалена`);
-    }
-  }
-
-  /**
-   * Перезапустить задачу для поиска
-   */
-  restartSearch(searchId: number, search: { id: number; title: string; is_active: boolean }): void {
-    this.removeSearch(searchId);
-    if (search.is_active) {
-      this.scheduleSearch(search);
-    }
-  }
-
-  /**
-   * Остановить все задачи
-   */
-  async shutdown(): Promise<void> {
-    logger.info("[Scheduler] Остановка всех задач...");
-
-    for (const [id, task] of this.jobs.entries()) {
-      task.stop();
-      logger.info(`[Scheduler] Задача ID: ${id} остановлена`);
-    }
-
-    this.jobs.clear();
-    logger.info("[Scheduler] Все задачи остановлены");
   }
 }

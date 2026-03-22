@@ -15,6 +15,8 @@ export interface Search {
   count_vacancies: number;
   is_active: boolean;
   last_checked_at: string | null;
+  ai_generations_today: number;
+  last_ai_reset_date: string;
   created_at: string;
   updated_at: string;
 }

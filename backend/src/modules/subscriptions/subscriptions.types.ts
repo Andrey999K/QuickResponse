@@ -7,6 +7,9 @@ export interface SubscriptionTier {
   ai_enabled: boolean;
   custom_prompt_enabled: boolean;
   description: string | null;
+  max_searches: number;
+  max_auto_ai_per_day: number;
+  max_manual_ai: number;
   created_at: string;
   updated_at: string;
 }

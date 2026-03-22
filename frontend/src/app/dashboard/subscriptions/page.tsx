@@ -2,7 +2,7 @@
 
 import { Button, Card, Col, message, Row, Space, Tag, Typography } from "antd";
 import { CheckCircleOutlined } from "@ant-design/icons";
-import { activateSubscription, useMySubscription, useTiers } from "@/hooks/useSubscription";
+import { activateSubscription, createPayment, useMySubscription, useTiers } from "@/hooks/useSubscription";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -12,26 +12,50 @@ export default function SubscriptionsPage() {
   const router = useRouter();
   const { tiers, isLoading: tiersLoading } = useTiers();
   const { subscription, isLoading: subLoading } = useMySubscription();
-  const [activating, setActivating] = useState<number | null>(null);
+  const [processing, setProcessing] = useState<number | null>(null);
+  // const [redirectURL, setRedirectURL] = useState<null | string>(null);
 
   const currentTierId = subscription?.tier.id;
 
-  const handleActivate = async (tierId: number) => {
+  const handleChooseTariff = async (tierId: number) => {
     if (tierId === currentTierId) {
       router.push("/dashboard/search");
       return;
     }
 
     try {
-      setActivating(tierId);
-      await activateSubscription(tierId);
-      message.success("Тариф активирован! Теперь у вас есть доступ ко всем функциям.");
-      router.push("/dashboard/search");
+      setProcessing(tierId);
+
+      // Для бесплатного тарифа - просто активируем
+      const tier = tiers.find((t) => t.id === tierId);
+      if (tier?.price === 0) {
+        await activateSubscription(tierId);
+        message.success("Тариф активирован!");
+        router.push("/dashboard/search");
+        return;
+      }
+
+      // Для платных тарифов - создаём платёж и перенаправляем на Robokassa
+      console.log(`[Robokassa] Создание платежа для тарифа ${tierId}`);
+      const paymentResult = await createPayment(tierId);
+
+      if (!paymentResult) {
+        console.error(`[Robokassa] Ошибка: paymentResult=null`);
+        message.error("Ошибка при создании платежа");
+        return;
+      }
+
+      console.log(`[Robokassa] Редирект на URL: ${paymentResult.redirect_url}`);
+      message.loading({ content: "Перенаправление на оплату...", key: "payment", duration: 2 });
+
+      // Перенаправляем на Robokassa
+      window.location.href = paymentResult.redirect_url;
+      // setRedirectURL(paymentResult.redirect_url);
     } catch (error) {
-      message.error("Ошибка при активации тарифа");
-      console.error("Activate subscription error:", error);
+      message.error("Ошибка при выборе тарифа");
+      console.error("[Robokassa] Ошибка выбора тарифа:", error);
     } finally {
-      setActivating(null);
+      setProcessing(null);
     }
   };
 
@@ -72,6 +96,11 @@ export default function SubscriptionsPage() {
         Выберите подходящий тариф для автоматизации откликов
       </Text>
 
+      {/*{!!redirectURL && <form action={redirectURL} method="POST">*/}
+      {/*  <span>Форма</span>*/}
+      {/*  <button type="submit" className="p-2 rounded-lg bg-blue-500 cursor-pointer">Оплачивай крч</button>*/}
+      {/*</form>}*/}
+
       <Row gutter={[16, 16]}>
         {tiers.map((tier) => {
           const isCurrent = tier.id === currentTierId;
@@ -81,7 +110,7 @@ export default function SubscriptionsPage() {
             <Col xs={24} sm={12} md={8} key={tier.id}>
               <Card
                 hoverable
-                variant={"borderless"}
+                variant="borderless"
                 style={{
                   height: "100%",
                   borderColor: isCurrent ? "#1890ff" : undefined,
@@ -100,9 +129,7 @@ export default function SubscriptionsPage() {
                   </Space>
                 }
                 extra={
-                  isCurrent && (
-                    <Tag color="green">Текущий тариф</Tag>
-                  )
+                  isCurrent && <Tag color="green">Текущий тариф</Tag>
                 }
               >
                 {tier.description && (
@@ -118,10 +145,10 @@ export default function SubscriptionsPage() {
                     type={isCurrent ? "default" : "primary"}
                     block
                     size="large"
-                    loading={activating === tier.id}
-                    onClick={() => handleActivate(tier.id)}
+                    loading={processing === tier.id}
+                    onClick={() => handleChooseTariff(tier.id)}
                   >
-                    {isCurrent ? "Текущий тариф" : isFree ? "Выбрать" : "Выбрать тариф"}
+                    {isCurrent ? "Текущий тариф" : isFree ? "Выбрать" : "Оплатить"}
                   </Button>
                 </div>
               </Card>
