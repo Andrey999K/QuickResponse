@@ -26,6 +26,7 @@ type SearchFormProps = {
   mode: "create" | "edit";
   initialData?: ISearch;
   searchId?: number;
+  onSearchLimitExceeded?: () => void;
 };
 
 export const SearchForm = ({
@@ -37,6 +38,7 @@ export const SearchForm = ({
                              mode,
                              initialData,
                              searchId,
+                             onSearchLimitExceeded,
                            }: SearchFormProps) => {
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
@@ -104,7 +106,14 @@ export const SearchForm = ({
         message.success("Поиск успешно обновлён!");
         router.push("/dashboard/search");
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      // Проверяем, это ошибка лимита поисков
+      const apiError = error as Error & { code?: string };
+      if (apiError.code === "SEARCH_LIMIT_EXCEEDED") {
+        onSearchLimitExceeded?.();
+        return;
+      }
+
       message.error(mode === "create" ? "Ошибка при создании поиска" : "Ошибка при обновлении поиска");
       console.error("Search form error:", error);
     } finally {

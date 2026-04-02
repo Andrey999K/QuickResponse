@@ -31,8 +31,6 @@ export const MenuSearch = ({ userId, searchId, title, onDelete }: MenuSearchProp
     {
       label: (
         <ButtonDeleteSearch
-          userId={userId}
-          searchId={searchId}
           title={title}
           onConfirm={handleDelete}
         />

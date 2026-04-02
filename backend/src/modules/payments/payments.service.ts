@@ -10,12 +10,14 @@ import { CreatePaymentData, CreatePaymentResult, Payment, RobokassaWebhookData }
 export class PaymentService {
   private readonly merchantId: string;
   private readonly secretKey1: string;
+  private readonly secretKey2: string;
   private readonly testMode: boolean;
   private readonly baseUrl: string;
 
   constructor() {
     this.merchantId = env.ROBOKASSA_MERCHANT_ID || "";
-    this.secretKey1 = env.ROBOKASSA_SECRET_KEY_1 || "";
+    this.secretKey1 = env.ROBOKASSA_TEST_SECRET_KEY_1 || "";
+    this.secretKey2 = env.ROBOKASSA_TEST_SECRET_KEY_2 || "";
     this.testMode = env.ROBOKASSA_TEST_MODE;
     // Правильный URL для инициализации платежа (единый для теста и продакшена)
     this.baseUrl = "https://auth.robokassa.ru/Merchant/Index.aspx";
@@ -54,8 +56,7 @@ export class PaymentService {
       logger.info(`[Robokassa] Payment record created in DB: id=${payment.id}, inv_id=${invId}`);
 
       // Формируем данные для подписи (Robokassa требует MD5)
-      // const signatureString = `${this.merchantId}:${amount}:${invId}`;
-      const signatureString = `${this.merchantId}:${amount}:${invId}`;
+      const signatureString = `${this.merchantId}:${amount.toFixed(2)}:${invId}`;
       const signatureValue = this.generateSignature(signatureString, this.secretKey1);
 
       logger.info(`[Robokassa] Signature generation:`);
@@ -81,6 +82,17 @@ export class PaymentService {
         logger.info("[Robokassa] Тестовый режим включён (IsTest=1)");
       }
 
+      // Добавляем SuccessURL для редиректа после успешной оплаты
+      redirectUrl.searchParams.set("SuccessURL", env.ROBOKASSA_SUCCESS_URL);
+      logger.info(`[Robokassa] SuccessURL: ${env.ROBOKASSA_SUCCESS_URL}`);
+
+      // Добавляем ResultURL для webhook (только если настроен ngrok)
+      if (env.ROBOKASSA_NGROK_URL) {
+        const resultUrl = `${env.ROBOKASSA_NGROK_URL}/api/payments/result`;
+        redirectUrl.searchParams.set("ResultURL", resultUrl);
+        logger.info(`[Robokassa] ResultURL (webhook): ${resultUrl}`);
+      }
+
       const finalUrl = redirectUrl.toString();
       logger.info(`[Robokassa] Final redirect URL: ${finalUrl}`);
       logger.info(`[Robokassa] Payment created successfully: ${payment.id}, InvId: ${invId}`);
@@ -102,6 +114,7 @@ export class PaymentService {
   async handleResultWebhook(
     data: RobokassaWebhookData,
   ): Promise<{ success: boolean; signature: string }> {
+    console.log("data: ", data);
     const { InvId, OutSum, SignatureValue, Shp_itemid, Shp_user_id } = data;
 
     logger.info(`[Robokassa] Webhook получен (Result URL):`);
@@ -111,14 +124,14 @@ export class PaymentService {
     logger.info(`  - Shp_itemid: ${Shp_itemid}`);
     logger.info(`  - Shp_user_id: ${Shp_user_id}`);
 
-    // Проверяем подпись через secretKey1
-    const isValid = this.verifySignature(OutSum, InvId, SignatureValue, this.secretKey1);
+    // Проверяем подпись через secretKey2 (для Result URL)
+    const isValid = this.verifySignature(OutSum, InvId, SignatureValue, this.secretKey2);
 
     logger.info(`[Robokassa] Проверка подписи: ${isValid ? "VALID" : "INVALID"}`);
 
     if (!isValid) {
       logger.error(`[Robokassa] Неверная подпись для платежа ${InvId}`);
-      logger.error(`[Robokassa] Ожидаемая подпись: ${this.generateSignature(`${OutSum}:${InvId}`, this.secretKey1)}`);
+      logger.error(`[Robokassa] Ожидаемая подпись: ${this.generateSignature(`${OutSum}:${InvId}`, this.secretKey2)}`);
       return { success: false, signature: "" };
     }
 
@@ -227,15 +240,15 @@ export class PaymentService {
   }
 
   /**
-   * Генерация подписи для запроса через MD5 (требование Robokassa)
+   * Генерация подписи для запроса через SHA256 (требование Robokassa)
    */
   private generateSignature(data: string, secretKey: string): string {
-    console.log("Signature: ", `${data}::${secretKey}`);
+    console.log("Signature: ", `${data}:${secretKey}`);
     return crypto
       .createHash("sha256")
       .update(`${data}:${secretKey}`)
-      .digest("hex");
-    // .toLowerCase();
+      .digest("hex")
+      .toUpperCase();
   }
 
   /**

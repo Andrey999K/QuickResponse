@@ -39,6 +39,7 @@ const port = env.PORT || 3000;
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Для обработки form data (Robokassa webhook)
 app.use(cookieParser());
 app.use(corsMiddleware);
 

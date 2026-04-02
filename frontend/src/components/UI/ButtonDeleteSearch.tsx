@@ -1,13 +1,11 @@
 import { Button, Popconfirm } from "antd";
 
 type ButtonDeleteSearchProps = {
-  userId: number;
-  searchId: number;
   title: string;
   onConfirm: () => void;
 };
 
-export const ButtonDeleteSearch = ({ userId, searchId, title, onConfirm }: ButtonDeleteSearchProps) => {
+export const ButtonDeleteSearch = ({ title, onConfirm }: ButtonDeleteSearchProps) => {
   return (
     <Popconfirm
       title="Удалить поиск"

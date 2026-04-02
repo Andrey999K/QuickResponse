@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { mutate as globalMutate } from "swr";
 import { notificationKeys } from "./useNotificationApi";
 import { INotification } from "@/types/Notification";
 
-interface SSEMessage {
-  event: string;
-  data: unknown;
-}
+// interface SSEMessage {
+//   event: string;
+//   data: unknown;
+// }
 
 // Получаем URL backend из env
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost"}:${

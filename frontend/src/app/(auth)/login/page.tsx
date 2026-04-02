@@ -4,6 +4,7 @@ import { SyntheticEvent, useState } from "react";
 import { Button, Input } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
 import { z } from "zod";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { AuthFormField } from "@/components/auth/AuthFormField";
@@ -11,6 +12,8 @@ import { apiClient } from "@/lib/api-client";
 import { toast } from "react-toastify";
 import { log } from "@/utils/log";
 import { User } from "@/types/User";
+
+const fetcher = () => apiClient.get<User>("/api/auth/me");
 
 const loginSchema = z.object({
   email: z.email("Некорректный формат email").min(1, "Введите email"),
@@ -23,6 +26,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<LoginErrors>({});
+  const { mutate } = useSWR("/api/auth/me");
 
   const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -54,6 +58,7 @@ export default function LoginPage() {
       })
       .then((res) => {
         if (res.user) {
+          mutate("/api/auth/me");
           router.push("/dashboard");
         }
       })
