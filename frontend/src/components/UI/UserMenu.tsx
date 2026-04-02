@@ -17,13 +17,13 @@ export const UserMenu = () => {
   };
 
   const items: MenuProps["items"] = [
-    {
-      label: <Link href={{ pathname: "/dashboard/profile" }}>Профиль</Link>,
-      key: "0",
-    },
+    // {
+    //   label: <Link href={{ pathname: "/dashboard/profile" }}>Профиль</Link>,
+    //   key: "0",
+    // },
     {
       label: <Link href={{ pathname: "/dashboard/settings" }}>Настройки</Link>,
-      key: "1",
+      key: "0",
     },
     {
       type: "divider",
@@ -34,7 +34,7 @@ export const UserMenu = () => {
           Выйти
         </Button>
       ),
-      key: "2",
+      key: "1",
     },
   ];
 

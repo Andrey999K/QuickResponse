@@ -1,10 +1,9 @@
 "use client";
 
 import { ReactNode } from "react";
-import { BarChart2, Search, Settings, User } from "@deemlol/next-icons";
+import { Search, Settings } from "@deemlol/next-icons";
 import { WalletOutlined, FileTextOutlined } from "@ant-design/icons";
 import { Card } from "antd";
-import Link from "next/link";
 
 import { Logo } from "@/components/UI/Logo";
 import { SidebarLink } from "@/components/UI/SidebarLink";
@@ -44,11 +43,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             url="/dashboard/search"
             icon={<Search size={24} />}
           />
-          <SidebarLink
+          {/* Временная заглушка - удалить после реализации страниц */}
+          {/* <SidebarLink
             text="Статистика"
             url="/dashboard/statistics"
             icon={<BarChart2 size={24} />}
-          />
+          /> */}
           <SidebarLink
             text="Тарифы"
             url="/dashboard/subscriptions"
@@ -59,11 +59,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             url="/dashboard/billing"
             icon={<FileTextOutlined style={{ fontSize: "24px" }} />}
           />
-          <SidebarLink
+          {/* Временная заглушка - удалить после реализации страниц */}
+          {/* <SidebarLink
             text="Профиль"
             url="/dashboard/profile"
             icon={<User size={24} />}
-          />
+          /> */}
           <SidebarLink
             text="Настройки"
             url="/dashboard/settings"
@@ -75,27 +76,24 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <div className="flex flex-col gap-2 min-w-0 w-full">
         {/* Хедер */}
         <Card className="w-full !bg-gray-50 dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 flex justify-end">
-          <div className="flex gap-2 items-center">
-            {/* Уведомления */}
-            <NotificationBell unreadCount={unreadCount} />
+            <div className="flex gap-2 items-center">
+              {/* Уведомления */}
+              <NotificationBell unreadCount={unreadCount} />
 
-            <Link
-              href={{ pathname: "/dashboard/profile" }}
-              className="flex items-center gap-2 !text-black dark:!text-white"
-            >
-              <div
-                className="bg-gray-300 dark:bg-gray-600 flex items-center justify-center rounded-full h-12 w-12 text-xl text-gray-700 dark:text-gray-200">
-                {user?.username[0]}
+              <div className="flex items-center gap-2 !text-black dark:!text-white">
+                <div
+                  className="bg-gray-300 dark:bg-gray-600 flex items-center justify-center rounded-full h-12 w-12 text-xl text-gray-700 dark:text-gray-200">
+                  {user?.username[0]}
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {user?.username}
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">{user?.email}</span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {user?.username}
-                </span>
-                <span className="text-gray-500 dark:text-gray-400">{user?.email}</span>
-              </div>
-            </Link>
-            <UserMenu />
-          </div>
+              <UserMenu />
+            </div>
         </Card>
 
         {/* Контент */}
